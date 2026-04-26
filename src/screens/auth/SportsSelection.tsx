@@ -106,7 +106,7 @@ const SportsSelection: React.FC = () => {
         style={[
           styles.continueButton,
           {
-            marginBottom: 0,
+            marginBottom: 20,
             backgroundColor: hasSelection
               ? theme.colors.accent
               : 'rgba(255,255,255,0.2)',
