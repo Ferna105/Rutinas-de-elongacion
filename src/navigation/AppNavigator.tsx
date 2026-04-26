@@ -5,8 +5,10 @@ import {
   SelectRoutines,
   AddAccessory,
   AccessoryExercises,
+  RoutineInformation,
+  StartRoutine,
+  Congratulations,
 } from '../../features/routine/screens';
-import PlaceholderScreen from '../../screens/PlaceholderScreen';
 import {useTheme} from '../../theme';
 
 const Stack = createStackNavigator();
@@ -47,19 +49,19 @@ const AppNavigator: React.FC = () => {
       />
       <Stack.Screen
         name="RoutineInformation"
-        options={{title: 'Resumen de Rutina'}}>
-        {() => <PlaceholderScreen title="RoutineInformation" />}
-      </Stack.Screen>
+        component={RoutineInformation}
+        options={{title: 'Resumen de Rutina'}}
+      />
       <Stack.Screen
         name="StartRoutine"
-        options={{headerShown: false}}>
-        {() => <PlaceholderScreen title="StartRoutine" />}
-      </Stack.Screen>
+        component={StartRoutine}
+        options={{headerShown: false}}
+      />
       <Stack.Screen
         name="Congratulations"
-        options={{headerShown: false}}>
-        {() => <PlaceholderScreen title="Congratulations" />}
-      </Stack.Screen>
+        component={Congratulations}
+        options={{headerShown: false}}
+      />
       <Stack.Screen
         name="Explore"
         component={Explore}
