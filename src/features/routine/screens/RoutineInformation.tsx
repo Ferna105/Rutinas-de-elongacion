@@ -281,7 +281,7 @@ const RoutineInformation: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.startButton,
-          {backgroundColor: theme.colors.accent, bottom: 12 + insets.bottom},
+          {backgroundColor: theme.colors.accent, bottom: 20},
         ]}
         onPress={handleStart}
         activeOpacity={0.7}>

@@ -185,7 +185,7 @@ const AccessoryExercises: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          {backgroundColor: theme.colors.accent, bottom: 12 + insets.bottom},
+          {backgroundColor: theme.colors.accent, bottom: 20},
         ]}
         onPress={handleNext}
         activeOpacity={0.7}>

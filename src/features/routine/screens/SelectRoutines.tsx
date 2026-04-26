@@ -218,7 +218,7 @@ const SelectRoutines: React.FC = () => {
         style={[
           styles.nextButton,
           {
-            bottom: 12 + insets.bottom,
+            bottom: 20,
             backgroundColor:
               selectedCount > 0
                 ? theme.colors.accent
@@ -252,7 +252,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
   },
   title: {
     fontSize: 24,

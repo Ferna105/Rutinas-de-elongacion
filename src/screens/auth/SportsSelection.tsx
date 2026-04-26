@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,28 +6,28 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import {useTheme} from '../../theme';
-import {useScreenInsets} from '../../hooks';
+import { useTheme } from '../../theme';
+import { useScreenInsets } from '../../hooks';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getSports} from '../../data';
-import {SportSelection} from '../../data/types';
+import { getSports } from '../../data';
+import { SportSelection } from '../../data/types';
 
 const SportsSelection: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const insets = useScreenInsets();
-  
+
   const sports = getSports();
   const [selectedSports, setSelectedSports] = useState<SportSelection[]>(
-    sports.map(s => ({...s, checked: false})),
+    sports.map(s => ({ ...s, checked: false })),
   );
 
   const toggleSport = (sid: string) => {
     setSelectedSports(prev =>
-      prev.map(s => (s.sid === sid ? {...s, checked: !s.checked} : s)),
+      prev.map(s => (s.sid === sid ? { ...s, checked: !s.checked } : s)),
     );
   };
 
@@ -106,7 +106,7 @@ const SportsSelection: React.FC = () => {
         style={[
           styles.continueButton,
           {
-            marginBottom: 20 + insets.bottom,
+            marginBottom: 0,
             backgroundColor: hasSelection
               ? theme.colors.accent
               : 'rgba(255,255,255,0.2)',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },

@@ -1,20 +1,20 @@
 import React from 'react';
-import {StatusBar, ActivityIndicator, View, StyleSheet} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {ThemeProvider, useTheme} from './src/theme';
-import {AuthProvider, useAuth} from './src/components/AuthContext';
-import {AuthNavigator, AppNavigator} from './src/navigation';
+import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ThemeProvider, useTheme } from './src/theme';
+import { AuthProvider, useAuth } from './src/components/AuthContext';
+import { AuthNavigator, AppNavigator } from './src/navigation';
 
 // Componente interno que usa los hooks de contexto
 const AppContent: React.FC = () => {
-  const {theme, isDark} = useTheme();
-  const {profile, isLoading} = useAuth();
+  const { theme, isDark } = useTheme();
+  const { profile, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <View style={[styles.loadingContainer, {backgroundColor: theme.colors.background}]}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.accent} />
       </View>
     );
@@ -22,13 +22,15 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      <StatusBar
-        barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.colors.primary}
-      />
-      <NavigationContainer>
-        {profile ? <AppNavigator /> : <AuthNavigator />}
-      </NavigationContainer>
+      <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={theme.colors.primary}
+        />
+        <NavigationContainer>
+          {profile ? <AppNavigator /> : <AuthNavigator />}
+        </NavigationContainer>
+      </SafeAreaView>
     </>
   );
 };
