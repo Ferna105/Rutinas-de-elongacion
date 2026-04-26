@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Dimensions,
   Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -16,8 +15,6 @@ import Sound from 'react-native-sound';
 import {useTheme} from '../../../theme';
 import {useExerciseTimer, useScreenInsets} from '../../../hooks';
 import {ExerciseWithAsset} from '../../../data/types';
-
-const {width: screenWidth} = Dimensions.get('window');
 
 const EXERCISE_DURATION = 20;
 const REST_DURATION = 10;
@@ -292,7 +289,7 @@ const StartRoutine: React.FC = () => {
           activeOpacity={0.7}>
           <Icon
             name={isActive ? 'pause' : 'play'}
-            size={40}
+            size={32}
             color={theme.colors.textOnButton}
           />
         </TouchableOpacity>
@@ -335,43 +332,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 8,
   },
   headerText: {
     fontSize: 18,
   },
   exerciseContainer: {
+    flex: 1,
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   exerciseGif: {
-    width: screenWidth * 0.8,
-    height: screenWidth * 0.8,
+    flex: 1,
+    aspectRatio: 1,
+    maxWidth: '90%',
     borderRadius: 15,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   exerciseName: {
-    fontSize: 22,
+    fontSize: 20,
     textAlign: 'center',
-    paddingHorizontal: 20,
   },
   phaseContainer: {
-    paddingVertical: 15,
+    paddingVertical: 10,
     alignItems: 'center',
     marginHorizontal: 40,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   phaseText: {
-    fontSize: 18,
+    fontSize: 16,
     letterSpacing: 2,
   },
   timerContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 10,
   },
   timerText: {
-    fontSize: 80,
+    fontSize: 60,
+    lineHeight: 68,
   },
   progressBarContainer: {
     height: 8,
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 40,
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 30,
+    marginBottom: 14,
   },
   progressBarFill: {
     height: '100%',
@@ -387,12 +388,12 @@ const styles = StyleSheet.create({
   },
   pauseButton: {
     alignSelf: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -404,11 +405,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   nextLabel: {
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: 13,
+    marginBottom: 2,
   },
   nextName: {
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
   },
 });
