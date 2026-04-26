@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,25 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useTheme} from '../../../theme';
 import {getChains} from '../../../data/queries';
-import {useRoutineBuilder} from '../../../hooks';
+import {useRoutineBuilder, useScreenInsets} from '../../../hooks';
 
 const AccessoryExercises: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
   const {chains, setChains, toggleChainSelection, setChainLevel} = useRoutineBuilder();
 
+  const allChains = useMemo(() => getChains(), []);
+
+  const chainStateById = useMemo(
+    () => new Map(chains.map(c => [c.cid, c])),
+    [chains],
+  );
+
   useEffect(() => {
-    const chainsData = getChains();
     setChains(
-      chainsData.map(c => ({
+      allChains.map(c => ({
         cid: c.cid,
         name: c.name,
         imageKey: c.cid,
@@ -31,10 +38,11 @@ const AccessoryExercises: React.FC = () => {
         level: 1,
       })),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChainPress = (cid: string, name: string) => {
-    const chain = chains.find(c => c.cid === cid);
+    const chain = chainStateById.get(cid);
     
     if (chain?.selected) {
       // Deseleccionar
@@ -89,7 +97,10 @@ const AccessoryExercises: React.FC = () => {
         theme.colors.gradientEnd,
       ]}
       style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={{
+        ...styles.scrollContent,
+        paddingBottom: 100 + insets.bottom,
+      }}>
         <Text
           style={[
             styles.title,
@@ -113,9 +124,10 @@ const AccessoryExercises: React.FC = () => {
         </Text>
 
         <View style={styles.grid}>
-          {getChains().map(chain => {
-            const isSelected = chains.find(c => c.cid === chain.cid)?.selected;
-            const level = chains.find(c => c.cid === chain.cid)?.level;
+          {allChains.map(chain => {
+            const chainState = chainStateById.get(chain.cid);
+            const isSelected = chainState?.selected || false;
+            const level = chainState?.level || 1;
 
             return (
               <TouchableOpacity
@@ -173,7 +185,7 @@ const AccessoryExercises: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          {backgroundColor: theme.colors.accent},
+          {backgroundColor: theme.colors.accent, bottom: 12 + insets.bottom},
         ]}
         onPress={handleNext}
         activeOpacity={0.7}>
@@ -241,7 +253,6 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     position: 'absolute',
-    bottom: 20,
     left: 20,
     right: 20,
     padding: 20,

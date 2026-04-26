@@ -94,6 +94,17 @@ android {
             keyPassword 'android'
         }
     }
+    packagingOptions {
+        jniLibs {
+            // Para debug: excluir ABIs innecesarias y reducir tamaño del APK
+            // El emulador (arm64-v8a) solo necesita arm64-v8a
+            excludes += [
+                "**/x86/**",
+                "**/x86_64/**",
+                "**/armeabi-v7a/**"
+            ]
+        }
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug

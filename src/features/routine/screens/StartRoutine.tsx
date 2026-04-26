@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  Platform,
   Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -15,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import KeepAwake from 'react-native-keep-awake';
 import Sound from 'react-native-sound';
 import {useTheme} from '../../../theme';
-import {useExerciseTimer} from '../../../hooks';
+import {useExerciseTimer, useScreenInsets} from '../../../hooks';
 import {ExerciseWithAsset} from '../../../data/types';
 
 const {width: screenWidth} = Dimensions.get('window');
@@ -42,10 +41,26 @@ const ProgressBar = ({
   </View>
 );
 
+interface ExerciseGifProps {
+  source: any;
+  style: any;
+}
+
+const ExerciseGif = React.memo<ExerciseGifProps>(
+  ({source, style}) => {
+    if (!source) {
+      return <View style={[style, {backgroundColor: 'rgba(255,255,255,0.1)'}]} />;
+    }
+    return <Image source={source} style={style} resizeMode="contain" />;
+  },
+  (prev, next) => prev.source === next.source,
+);
+
 const StartRoutine: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
 
   const {groupedExercises, routeParams} = route.params || {};
 
@@ -206,7 +221,7 @@ const StartRoutine: React.FC = () => {
           theme.colors.gradientMid,
           theme.colors.gradientEnd,
         ]}
-        style={styles.container}>
+        style={[styles.container, {paddingTop: insets.top + 8, paddingBottom: insets.bottom}]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleExit}>
             <Icon name="close" size={30} color={theme.colors.textPrimary} />
@@ -227,16 +242,7 @@ const StartRoutine: React.FC = () => {
         </View>
 
         <View style={styles.exerciseContainer}>
-          {exercise.gif ? (
-            <Image source={exercise.gif} style={styles.exerciseGif} />
-          ) : (
-            <View
-              style={[
-                styles.exerciseGif,
-                {backgroundColor: 'rgba(255,255,255,0.1)'},
-              ]}
-            />
-          )}
+          <ExerciseGif source={exercise.gif} style={styles.exerciseGif} />
           <Text
             style={[
               styles.exerciseName,
@@ -323,7 +329,6 @@ const StartRoutine: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
   },
   header: {
     flexDirection: 'row',

@@ -9,6 +9,7 @@ import {
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useTheme} from '../../theme';
+import {useScreenInsets} from '../../hooks';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {getSports} from '../../data';
 import {SportSelection} from '../../data/types';
@@ -17,6 +18,7 @@ const SportsSelection: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
   
   const sports = getSports();
   const [selectedSports, setSelectedSports] = useState<SportSelection[]>(
@@ -104,6 +106,7 @@ const SportsSelection: React.FC = () => {
         style={[
           styles.continueButton,
           {
+            marginBottom: 20 + insets.bottom,
             backgroundColor: hasSelection
               ? theme.colors.accent
               : 'rgba(255,255,255,0.2)',

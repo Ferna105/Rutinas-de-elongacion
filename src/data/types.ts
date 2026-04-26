@@ -51,6 +51,7 @@ export interface ChainWithAsset extends Omit<Chain, 'imageKey'> {
 
 export interface ExerciseWithAsset extends Omit<Exercise, 'gifKey'> {
   gif: any; // ImageSourcePropType de React Native
+  poster?: any; // ImageSourcePropType de React Native (poster estático PNG)
 }
 
 // Tipos para perfil de usuario

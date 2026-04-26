@@ -1,18 +1,20 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Image,
+  ScrollView,
   Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../../theme';
+import {useScreenInsets} from '../../../hooks';
 import {
   getGeneratedRoutine,
   getGeneratedRoutineShowableExercises,
@@ -23,10 +25,76 @@ import {
   ChainSelection,
 } from '../../../data/types';
 
+type ListItem =
+  | {type: 'header'; title: string; groupIndex: number}
+  | {type: 'exercise'; exercise: ExerciseWithAsset; groupIndex: number; exerciseIndex: number};
+
+interface ExerciseRowProps {
+  exercise: ExerciseWithAsset;
+  onPress: (exercise: ExerciseWithAsset) => void;
+  theme: any;
+}
+
+const ExerciseRow = React.memo<ExerciseRowProps>(
+  ({exercise, onPress, theme}) => (
+    <TouchableOpacity
+      style={[
+        styles.exerciseCard,
+        {backgroundColor: 'rgba(255,255,255,0.05)'},
+      ]}
+      onPress={() => onPress(exercise)}
+      activeOpacity={0.7}>
+      {exercise.poster ? (
+        <Image
+          source={exercise.poster}
+          style={styles.exerciseThumbnail}
+          resizeMode="cover"
+        />
+      ) : (
+        <View
+          style={[
+            styles.exerciseThumbnail,
+            {backgroundColor: 'rgba(255,255,255,0.1)'},
+          ]}
+        />
+      )}
+      <View style={styles.exerciseInfo}>
+        <Text
+          style={[
+            styles.exerciseName,
+            {
+              fontFamily: theme.typography.fontFamily.bold,
+              color: theme.colors.textPrimary,
+            },
+          ]}>
+          {exercise.showableName}
+        </Text>
+        <Text
+          style={[
+            styles.exerciseTime,
+            {
+              fontFamily: theme.typography.fontFamily.regular,
+              color: theme.colors.textSecondary,
+            },
+          ]}>
+          20" ejercicio • 10" descanso
+        </Text>
+      </View>
+      <Icon
+        name="information"
+        size={24}
+        color={theme.colors.textSecondary}
+      />
+    </TouchableOpacity>
+  ),
+  (prev, next) => prev.exercise.eid === next.exercise.eid && prev.theme === next.theme,
+);
+
 const RoutineInformation: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
 
   // Estabilizamos las referencias para que useMemo/useEffect no se disparen en cada render.
   const routinesParam = route.params?.routines;
@@ -61,7 +129,25 @@ const RoutineInformation: React.FC = () => {
     }));
   }, [routines, chains]);
 
-  const handleStart = () => {
+  const totalExercises = useMemo(
+    () =>
+      groupedExercises.reduce((sum, group) => sum + group.exercises.length, 0),
+    [groupedExercises],
+  );
+
+  // Aplanamos los grupos en una lista de items para FlashList
+  const flatListData = useMemo<ListItem[]>(() => {
+    const items: ListItem[] = [];
+    groupedExercises.forEach((group, groupIndex) => {
+      items.push({type: 'header', title: group.title, groupIndex});
+      group.exercises.forEach((exercise, exerciseIndex) => {
+        items.push({type: 'exercise', exercise, groupIndex, exerciseIndex});
+      });
+    });
+    return items;
+  }, [groupedExercises]);
+
+  const handleStart = useCallback(() => {
     Alert.alert(
       'Recordatorio Importante',
       'Durante la elongación deberías sentir tensión moderada, NUNCA dolor. Si sentís dolor, reducí la intensidad o consultá a un profesional.',
@@ -77,12 +163,43 @@ const RoutineInformation: React.FC = () => {
         },
       ],
     );
-  };
+  }, [navigation, groupedExercises, route.params]);
 
-  const totalExercises = groupedExercises.reduce(
-    (sum, group) => sum + group.exercises.length,
-    0,
+  const handleSelectExercise = useCallback((exercise: ExerciseWithAsset) => {
+    setSelectedExercise(exercise);
+  }, []);
+
+  const renderItem = useCallback(
+    ({item}: {item: ListItem}) => {
+      if (item.type === 'header') {
+        return (
+          <Text
+            style={[
+              styles.groupTitle,
+              {
+                fontFamily: theme.typography.fontFamily.bold,
+                color: theme.colors.accent,
+              },
+            ]}>
+            {item.title}
+          </Text>
+        );
+      }
+      return <ExerciseRow exercise={item.exercise} onPress={handleSelectExercise} theme={theme} />;
+    },
+    [theme, handleSelectExercise],
   );
+
+  const getItemType = useCallback((item: ListItem) => {
+    return item.type;
+  }, []);
+
+  const keyExtractor = useCallback((item: ListItem, index: number) => {
+    if (item.type === 'header') {
+      return `header-${item.groupIndex}`;
+    }
+    return `ex-${item.exercise.eid}-${item.groupIndex}-${item.exerciseIndex}`;
+  }, []);
 
   return (
     <LinearGradient
@@ -92,133 +209,80 @@ const RoutineInformation: React.FC = () => {
         theme.colors.gradientEnd,
       ]}
       style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View
-          style={[
-            styles.summaryCard,
-            {backgroundColor: theme.colors.accent},
-          ]}>
-          <View style={styles.summaryItem}>
-            <Icon name="timer" size={30} color={theme.colors.textOnButton} />
-            <Text
-              style={[
-                styles.summaryValue,
-                {
-                  fontFamily: theme.typography.fontFamily.bold,
-                  color: theme.colors.textOnButton,
-                },
-              ]}>
-              {totalMinutes} min
-            </Text>
-            <Text
-              style={[
-                styles.summaryLabel,
-                {
-                  fontFamily: theme.typography.fontFamily.regular,
-                  color: theme.colors.textOnButton,
-                },
-              ]}>
-              Duración
-            </Text>
-          </View>
-
-          <View style={styles.summaryDivider} />
-
-          <View style={styles.summaryItem}>
-            <Icon name="run" size={30} color={theme.colors.textOnButton} />
-            <Text
-              style={[
-                styles.summaryValue,
-                {
-                  fontFamily: theme.typography.fontFamily.bold,
-                  color: theme.colors.textOnButton,
-                },
-              ]}>
-              {totalExercises}
-            </Text>
-            <Text
-              style={[
-                styles.summaryLabel,
-                {
-                  fontFamily: theme.typography.fontFamily.regular,
-                  color: theme.colors.textOnButton,
-                },
-              ]}>
-              Ejercicios
-            </Text>
-          </View>
-        </View>
-
-        {groupedExercises.map((group, groupIndex) => (
-          <View key={groupIndex} style={styles.groupContainer}>
-            <Text
-              style={[
-                styles.groupTitle,
-                {
-                  fontFamily: theme.typography.fontFamily.bold,
-                  color: theme.colors.accent,
-                },
-              ]}>
-              {group.title}
-            </Text>
-
-            {group.exercises.map((exercise, exerciseIndex) => (
-              <TouchableOpacity
-                key={exerciseIndex}
+      <FlashList
+        data={flatListData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        getItemType={getItemType}
+        estimatedItemSize={76}
+        ListHeaderComponent={() => (
+          <View
+            style={[
+              styles.summaryCard,
+              {backgroundColor: theme.colors.accent},
+            ]}>
+            <View style={styles.summaryItem}>
+              <Icon name="timer" size={30} color={theme.colors.textOnButton} />
+              <Text
                 style={[
-                  styles.exerciseCard,
-                  {backgroundColor: 'rgba(255,255,255,0.05)'},
-                ]}
-                onPress={() => setSelectedExercise(exercise)}
-                activeOpacity={0.7}>
-                {exercise.gif ? (
-                  <Image
-                    source={exercise.gif}
-                    style={styles.exerciseThumbnail}
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.exerciseThumbnail,
-                      {backgroundColor: 'rgba(255,255,255,0.1)'},
-                    ]}
-                  />
-                )}
-                <View style={styles.exerciseInfo}>
-                  <Text
-                    style={[
-                      styles.exerciseName,
-                      {
-                        fontFamily: theme.typography.fontFamily.bold,
-                        color: theme.colors.textPrimary,
-                      },
-                    ]}>
-                    {exercise.showableName}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.exerciseTime,
-                      {
-                        fontFamily: theme.typography.fontFamily.regular,
-                        color: theme.colors.textSecondary,
-                      },
-                    ]}>
-                    20" ejercicio • 10" descanso
-                  </Text>
-                </View>
-                <Icon
-                  name="information"
-                  size={24}
-                  color={theme.colors.textSecondary}
-                />
-              </TouchableOpacity>
-            ))}
+                  styles.summaryValue,
+                  {
+                    fontFamily: theme.typography.fontFamily.bold,
+                    color: theme.colors.textOnButton,
+                  },
+                ]}>
+                {totalMinutes} min
+              </Text>
+              <Text
+                style={[
+                  styles.summaryLabel,
+                  {
+                    fontFamily: theme.typography.fontFamily.regular,
+                    color: theme.colors.textOnButton,
+                  },
+                ]}>
+                Duración
+              </Text>
+            </View>
+
+            <View style={styles.summaryDivider} />
+
+            <View style={styles.summaryItem}>
+              <Icon name="run" size={30} color={theme.colors.textOnButton} />
+              <Text
+                style={[
+                  styles.summaryValue,
+                  {
+                    fontFamily: theme.typography.fontFamily.bold,
+                    color: theme.colors.textOnButton,
+                  },
+                ]}>
+                {totalExercises}
+              </Text>
+              <Text
+                style={[
+                  styles.summaryLabel,
+                  {
+                    fontFamily: theme.typography.fontFamily.regular,
+                    color: theme.colors.textOnButton,
+                  },
+                ]}>
+                Ejercicios
+              </Text>
+            </View>
           </View>
-        ))}
-      </ScrollView>
+        )}
+        contentContainerStyle={{
+          ...styles.listContent,
+          paddingBottom: 100 + insets.bottom,
+        }}
+      />
 
       <TouchableOpacity
-        style={[styles.startButton, {backgroundColor: theme.colors.accent}]}
+        style={[
+          styles.startButton,
+          {backgroundColor: theme.colors.accent, bottom: 12 + insets.bottom},
+        ]}
         onPress={handleStart}
         activeOpacity={0.7}>
         <Icon name="play" size={30} color={theme.colors.textOnButton} />
@@ -258,6 +322,7 @@ const RoutineInformation: React.FC = () => {
                     <Image
                       source={selectedExercise.gif}
                       style={styles.modalGif}
+                      resizeMode="contain"
                     />
                   ) : (
                     <View
@@ -301,7 +366,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
+  listContent: {
     padding: 20,
     paddingBottom: 100,
   },
@@ -365,7 +430,6 @@ const styles = StyleSheet.create({
   },
   startButton: {
     position: 'absolute',
-    bottom: 20,
     left: 20,
     right: 20,
     flexDirection: 'row',

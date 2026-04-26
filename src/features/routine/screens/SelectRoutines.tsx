@@ -13,12 +13,13 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../../theme';
 import {useAuth} from '../../../components/AuthContext';
 import {getUserRoutines} from '../../../data/queries';
-import {useRoutineBuilder} from '../../../hooks';
+import {useRoutineBuilder, useScreenInsets} from '../../../hooks';
 
 const SelectRoutines: React.FC = () => {
   const navigation = useNavigation<any>();
   const {theme} = useTheme();
   const {profile} = useAuth();
+  const insets = useScreenInsets();
   const {
     routines,
     setRoutines,
@@ -217,6 +218,7 @@ const SelectRoutines: React.FC = () => {
         style={[
           styles.nextButton,
           {
+            bottom: 12 + insets.bottom,
             backgroundColor:
               selectedCount > 0
                 ? theme.colors.accent
@@ -333,7 +335,6 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     position: 'absolute',
-    bottom: 20,
     left: 20,
     right: 20,
     padding: 20,

@@ -2,6 +2,7 @@ import React from 'react';
 import {StatusBar, ActivityIndicator, View, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {ThemeProvider, useTheme} from './src/theme';
 import {AuthProvider, useAuth} from './src/components/AuthContext';
 import {AuthNavigator, AppNavigator} from './src/navigation';
@@ -36,11 +37,13 @@ const AppContent: React.FC = () => {
 function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

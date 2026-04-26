@@ -2,7 +2,7 @@
 // Datos completos extraídos del proyecto LiberacionesMiofasciales
 
 import {Database, Chain, Exercise, Sport, Routine, ExerciseRoutine} from './types';
-import {chainImages, exerciseGifs} from './assets';
+import {chainImages, exerciseGifs, exercisePosters} from './assets';
 
 const chains: Chain[] = [
   {cid: '2', name: 'Cadena anterior de los brazos', imageKey: 'CADENA_ANTERIOR_DE_LOS_BRAZOS'},
@@ -322,4 +322,5 @@ export const getChainWithAsset = (chain: Chain) => ({
 export const getExerciseWithAsset = (exercise: Exercise) => ({
   ...exercise,
   gif: exerciseGifs[exercise.gifKey],
+  poster: exercisePosters[exercise.gifKey],
 });

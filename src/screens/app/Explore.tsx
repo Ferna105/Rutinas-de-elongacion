@@ -1,31 +1,33 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Image,
   ScrollView,
 } from 'react-native';
+import {FlashList} from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../theme';
 import {getShowableExercises} from '../../data/queries';
 import {ExerciseWithAsset} from '../../data/types';
 
-const Explore: React.FC = () => {
-  const {theme} = useTheme();
-  const [selectedExercise, setSelectedExercise] = useState<ExerciseWithAsset | null>(null);
-  const exercises = getShowableExercises();
+interface ExerciseRowProps {
+  item: ExerciseWithAsset;
+  onPress: (exercise: ExerciseWithAsset) => void;
+  theme: any;
+}
 
-  const renderExerciseItem = ({item}: {item: ExerciseWithAsset}) => (
+const ExerciseRow = React.memo<ExerciseRowProps>(
+  ({item, onPress, theme}) => (
     <TouchableOpacity
       style={[styles.exerciseCard, {backgroundColor: 'rgba(255,255,255,0.05)'}]}
-      onPress={() => setSelectedExercise(item)}
+      onPress={() => onPress(item)}
       activeOpacity={0.7}>
-      <Image source={item.gif} style={styles.thumbnail} />
+      <Image source={item.poster} style={styles.thumbnail} resizeMode="cover" />
       <View style={styles.exerciseInfo}>
         <Text
           style={[
@@ -51,6 +53,24 @@ const Explore: React.FC = () => {
       </View>
       <Icon name="chevron-right" size={24} color={theme.colors.textSecondary} />
     </TouchableOpacity>
+  ),
+  (prev, next) => prev.item.eid === next.item.eid && prev.theme === next.theme,
+);
+
+const Explore: React.FC = () => {
+  const {theme} = useTheme();
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseWithAsset | null>(null);
+  const exercises = getShowableExercises();
+
+  const handleSelectExercise = useCallback((exercise: ExerciseWithAsset) => {
+    setSelectedExercise(exercise);
+  }, []);
+
+  const renderExerciseItem = useCallback(
+    ({item}: {item: ExerciseWithAsset}) => (
+      <ExerciseRow item={item} onPress={handleSelectExercise} theme={theme} />
+    ),
+    [handleSelectExercise, theme],
   );
 
   return (
@@ -61,10 +81,11 @@ const Explore: React.FC = () => {
         theme.colors.gradientEnd,
       ]}
       style={styles.container}>
-      <FlatList
+      <FlashList
         data={exercises}
         renderItem={renderExerciseItem}
         keyExtractor={item => item.eid}
+        estimatedItemSize={84}
         contentContainerStyle={styles.listContent}
       />
 
@@ -89,7 +110,7 @@ const Explore: React.FC = () => {
 
               {selectedExercise && (
                 <>
-                  <Image source={selectedExercise.gif} style={styles.modalGif} />
+                  <Image source={selectedExercise.gif} style={styles.modalGif} resizeMode="contain" />
                   <Text
                     style={[
                       styles.modalTitle,

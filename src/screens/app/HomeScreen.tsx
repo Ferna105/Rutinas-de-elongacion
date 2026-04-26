@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,14 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Carousel from 'react-native-reanimated-carousel';
 import {useTheme} from '../../theme';
 import {sliderImages} from '../../data/assets';
 import {loadSessions} from '../../storage';
 import {CompletedSession} from '../../data/types';
+import {useScreenInsets} from '../../hooks';
 
 const {width: screenWidth} = Dimensions.get('window');
 
@@ -41,19 +42,34 @@ const tips = [
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
   const [sessions, setSessions] = useState<CompletedSession[]>([]);
   const [activeSlide, setActiveSlide] = useState(0);
+  const carouselRef = useRef<any>(null);
 
   useEffect(() => {
     loadSessionHistory();
   }, []);
+
+  // Pausar/reanudar autoplay al enfocar/desenfocar
+  useFocusEffect(
+    useCallback(() => {
+      // Screen está enfocada
+      return () => {
+        // Screen se desenfoca - pausar carrusel si es posible
+        if (carouselRef.current?.pause) {
+          carouselRef.current.pause();
+        }
+      };
+    }, []),
+  );
 
   const loadSessionHistory = async () => {
     const history = await loadSessions();
     setSessions(history.slice(0, 3)); // Últimas 3 sesiones
   };
 
-  const renderCarouselItem = ({index}: {index: number}) => {
+  const renderCarouselItem = useCallback(({index}: {index: number}) => {
     const tip = tips[index];
     const image = sliderImages[index];
 
@@ -84,7 +100,7 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
     );
-  };
+  }, [theme]);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -116,10 +132,14 @@ const HomeScreen: React.FC = () => {
         theme.colors.gradientEnd,
       ]}
       style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={{
+        ...styles.scrollContent,
+        paddingBottom: 20 + insets.bottom,
+      }}>
         {/* Carousel */}
         <View style={styles.carouselContainer}>
           <Carousel
+            ref={carouselRef}
             width={screenWidth - 40}
             height={200}
             data={tips}

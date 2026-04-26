@@ -4,12 +4,14 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../../theme';
+import {useScreenInsets} from '../../../hooks';
 import {addSession} from '../../../storage';
 
 const Congratulations: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
+  const insets = useScreenInsets();
 
   const {totalSeconds, exercisesDone, routineNames} = route.params || {
     totalSeconds: 0,
@@ -56,7 +58,7 @@ const Congratulations: React.FC = () => {
         theme.colors.gradientMid,
         theme.colors.gradientEnd,
       ]}
-      style={styles.container}>
+      style={[styles.container, {paddingTop: insets.top, paddingBottom: insets.bottom}]}>
       <View style={styles.content}>
         {/* Ícono de éxito */}
         <View
