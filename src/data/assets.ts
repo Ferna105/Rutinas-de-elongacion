@@ -1,0 +1,104 @@
+// Mapper de assets: convierte las claves string en módulos require() reales
+// Esto separa los datos puros (JSON) del código que carga assets
+
+// Cadenas musculares (imágenes PNG)
+export const chainImages: Record<string, any> = {
+  CADENA_ANTERIOR_DE_LOS_BRAZOS: require('../assets/Cadenas/CADENA_ANTERIOR_DE_LOS_BRAZOS.png'),
+  CADENA_POSTERIOR_DE_LOS_BRAZOS: require('../assets/Cadenas/CADENA_POSTERIOR_DE_LOS_BRAZOS.png'),
+  CADENA_POSTERIOR_SUPERIOR: require('../assets/Cadenas/CADENA_POSTERIOR_SUPERIOR.png'),
+  CADENA_POSTERIOR_INFERIOR: require('../assets/Cadenas/CADENA_POSTERIOR_INFERIOR.png'),
+  CADENA_ANTERIOR: require('../assets/Cadenas/CADENA_ANTERIOR.png'),
+  CUELLO: require('../assets/Cadenas/CUELLO.png'),
+  CADENA_LATERAL: require('../assets/Cadenas/CADENA_LATERAL.png'),
+};
+
+// Ejercicios (GIFs)
+export const exerciseGifs: Record<string, any> = {
+  ABRAZARSE: require('../assets/Ejercicios/ABRAZARSE.gif'),
+  ALACRAN: require('../assets/Ejercicios/ALACRAN.gif'),
+  ARAÑA: require('../assets/Ejercicios/ARAÑA.gif'),
+  BICEPS_PERO_CON_PUÑO: require('../assets/Ejercicios/BICEPS_PERO_CON_PUÑO.gif'),
+  BOLITA: require('../assets/Ejercicios/BOLITA.gif'),
+  CRUZ: require('../assets/Ejercicios/CRUZ.gif'),
+  CRUZAR_MANOS_ATRAS: require('../assets/Ejercicios/CRUZAR_MANOS_ATRAS.gif'),
+  CRUZAR_UN_PALO: require('../assets/Ejercicios/CRUZAR_UN_PALO.gif'),
+  CUADRICEPS_LEVANTADO_EL_TALON: require('../assets/Ejercicios/CUADRICEPS_LEVANTADO_EL_TALON.gif'),
+  CUADRICEPS_PARADO: require('../assets/Ejercicios/CUADRICEPS_PARADO.gif'),
+  DORSALES_SENTADO: require('../assets/Ejercicios/DORSALES_SENTADO.gif'),
+  DORSALES_Y_BASTON: require('../assets/Ejercicios/DORSALES_Y_BASTON.gif'),
+  ENROLLARSE_COMO_UNA_BOLITA: require('../assets/Ejercicios/ENROLLARSE_COMO_UNA_BOLITA.gif'),
+  ENTRECRUZAR_PULGARES: require('../assets/Ejercicios/ENTRECRUZAR_PULGARES.gif'),
+  FLEXOR_DE_CADERA: require('../assets/Ejercicios/FLEXOR_DE_CADERA.gif'),
+  GEMELOS_CON_SOGA: require('../assets/Ejercicios/GEMELOS_CON_SOGA.gif'),
+  GEMELOS_PARADO: require('../assets/Ejercicios/GEMELOS_PARADO.gif'),
+  GLUTEO_ABRAZAR_LA_RODILLA: require('../assets/Ejercicios/GLUTEO_ABRAZAR_LA_RODILLA.gif'),
+  EL_4: require('../assets/Ejercicios/EL_4.gif'),
+  HOMBROS_CARA_POSTERIOR: require('../assets/Ejercicios/HOMBROS_CARA_POSTERIOR.gif'),
+  HOMBROS_CARA_ANTERIOR: require('../assets/Ejercicios/HOMBROS_CARA_ANTERIOR.gif'),
+  ISQUIO_ADAPTADO: require('../assets/Ejercicios/ISQUIO_ADAPTADO.gif'),
+  ISQUIO_CON_SOGA_SENTADO: require('../assets/Ejercicios/ISQUIO_CON_SOGA_SENTADO.gif'),
+  ISQUIO_TIRAR_DEL_PIE: require('../assets/Ejercicios/ISQUIO_TIRAR_DEL_PIE.gif'),
+  REZAR: require('../assets/Ejercicios/REZAR.gif'),
+  JUNTAR_PLANTAS: require('../assets/Ejercicios/JUNTAR_PLANTAS.gif'),
+  SALUDO_AL_SOL_PARADO: require('../assets/Ejercicios/SALUDO_AL_SOL_PARADO.gif'),
+  MANO_A_LA_AXILA: require('../assets/Ejercicios/MANO_A_LA_AXILA.gif'),
+  MANO_EN_EL_CUELLO: require('../assets/Ejercicios/MANO_EN_EL_CUELLO.gif'),
+  MANSALVA: require('../assets/Ejercicios/MANSALVA.gif'),
+  MASTIL: require('../assets/Ejercicios/MASTIL.gif'),
+  MONJE: require('../assets/Ejercicios/MONJE.gif'),
+  CANASTITA_ACOSTADO: require('../assets/Ejercicios/CANASTITA_ACOSTADO.gif'),
+  PECTORAL_A_120: require('../assets/Ejercicios/PECTORAL_A_120.gif'),
+  PECTORAL_CON_BASTON: require('../assets/Ejercicios/PECTORAL_CON_BASTON.gif'),
+  PECTORAL_EN_LA_PARED: require('../assets/Ejercicios/PECTORAL_EN_LA_PARED.gif'),
+  ISQUIO_PARADO: require('../assets/Ejercicios/ISQUIO_PARADO.gif'),
+  PLANTARES: require('../assets/Ejercicios/PLANTARES.gif'),
+  PRONACION_MAXIMA: require('../assets/Ejercicios/PRONACION_MAXIMA.gif'),
+  PUÑOS_AL_PISO: require('../assets/Ejercicios/PUÑOS_AL_PISO.gif'),
+  CRUZ_EN_L: require('../assets/Ejercicios/CRUZ_EN_L.gif'),
+  ROTADORES: require('../assets/Ejercicios/ROTADORES.gif'),
+  SALUDO_AL_SOL: require('../assets/Ejercicios/SALUDO_AL_SOL.gif'),
+  SENTARSE_EN_EL_TALON: require('../assets/Ejercicios/SENTARSE_EN_EL_TALON.gif'),
+  SOLEO: require('../assets/Ejercicios/SOLEO.gif'),
+  DEDOS_AL_MEDIO: require('../assets/Ejercicios/DEDOS_AL_MEDIO.gif'),
+  TFL_EMPUJANDO_LA_RODILLA: require('../assets/Ejercicios/TFL_EMPUJANDO_LA_RODILLA.gif'),
+  TFL_PARADO: require('../assets/Ejercicios/TFL_PARADO.gif'),
+  RODILLA_AFUERA: require('../assets/Ejercicios/RODILLA_AFUERA.gif'),
+  TIRARSE_DEDOS_PARA_ATRAS: require('../assets/Ejercicios/TIRARSE_DEDOS_PARA_ATRAS.gif'),
+  TRAPECIO_SENTADO: require('../assets/Ejercicios/TRAPECIO_SENTADO.gif'),
+  TRIANGULO_DE_CADERA: require('../assets/Ejercicios/TRIANGULO_DE_CADERA.gif'),
+  TRICEPS: require('../assets/Ejercicios/TRICEPS.gif'),
+  Y: require('../assets/Ejercicios/Y.gif'),
+  ZAPO: require('../assets/Ejercicios/ZAPO.gif'),
+};
+
+// Sliders (imágenes para el carousel del Home)
+export const sliderImages: Record<number, any> = {
+  0: require('../assets/slider/slider0.png'),
+  1: require('../assets/slider/slider1.png'),
+  2: require('../assets/slider/slider2.png'),
+  3: require('../assets/slider/slider3.png'),
+  4: require('../assets/slider/slider4.png'),
+  5: require('../assets/slider/slider5.png'),
+  6: require('../assets/slider/slider6.png'),
+  7: require('../assets/slider/slider7.png'),
+  8: require('../assets/slider/slider8.png'),
+  9: require('../assets/slider/slider9.png'),
+  10: require('../assets/slider/slider10.png'),
+  11: require('../assets/slider/slider11.png'),
+  12: require('../assets/slider/slider12.png'),
+  13: require('../assets/slider/slider13.png'),
+  14: require('../assets/slider/slider14.png'),
+  15: require('../assets/slider/slider15.png'),
+};
+
+// Sonidos
+export const sounds: Record<string, any> = {
+  bip: require('../assets/sounds/bip.mp3'),
+};
+
+// Iconos / Imágenes generales
+export const images: Record<string, any> = {
+  logo: require('../assets/images/logo.png'),
+  icon: require('../assets/images/icon.png'),
+  splash: require('../assets/images/splash.png'),
+};

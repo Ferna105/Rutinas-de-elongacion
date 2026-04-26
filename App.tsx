@@ -1,44 +1,58 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from 'react';
+import {StatusBar, ActivityIndicator, View, StyleSheet} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {ThemeProvider, useTheme} from './src/theme';
+import {AuthProvider, useAuth} from './src/components/AuthContext';
+import {AuthNavigator, AppNavigator} from './src/navigation';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+// Componente interno que usa los hooks de contexto
+const AppContent: React.FC = () => {
+  const {theme, isDark} = useTheme();
+  const {profile, isLoading} = useAuth();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, {backgroundColor: theme.colors.background}]}>
+        <ActivityIndicator size="large" color={theme.colors.accent} />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
+    <>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.colors.primary}
       />
-    </View>
+      <NavigationContainer>
+        {profile ? <AppNavigator /> : <AuthNavigator />}
+      </NavigationContainer>
+    </>
+  );
+};
+
+// Componente raíz con providers
+function App(): React.JSX.Element {
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
