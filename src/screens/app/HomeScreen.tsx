@@ -62,12 +62,12 @@ const HomeScreen: React.FC = () => {
         <Image
           source={image}
           style={styles.carouselImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
         <View
           style={[
             styles.tipContainer,
-            {backgroundColor: 'rgba(0,0,0,0.7)'},
+            {backgroundColor: 'rgba(7,4,33,0.65)'},
           ]}>
           <Text
             style={[
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   carouselItem: {
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
   },
   carouselImage: {
     width: '100%',

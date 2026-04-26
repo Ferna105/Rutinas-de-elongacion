@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,24 @@ import {
   Image,
   Dimensions,
   Platform,
+  Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import KeepAwake from 'react-native-keep-awake';
-// import Sound from 'react-native-sound'; // Descomentar cuando esté instalado
+import Sound from 'react-native-sound';
 import {useTheme} from '../../../theme';
 import {useExerciseTimer} from '../../../hooks';
 import {ExerciseWithAsset} from '../../../data/types';
 
 const {width: screenWidth} = Dimensions.get('window');
 
-// Progress bar cross-platform
+const EXERCISE_DURATION = 20;
+const REST_DURATION = 10;
+
+Sound.setCategory('Playback');
+
 const ProgressBar = ({
   progress,
   color,
@@ -31,7 +36,7 @@ const ProgressBar = ({
     <View
       style={[
         styles.progressBarFill,
-        {width: `${progress * 100}%`, backgroundColor: color},
+        {width: `${Math.min(100, Math.max(0, progress * 100))}%`, backgroundColor: color},
       ]}
     />
   </View>
@@ -42,62 +47,93 @@ const StartRoutine: React.FC = () => {
   const route = useRoute<any>();
   const {theme} = useTheme();
 
-  const {groupedExercises, routeParams} = route.params;
-  const allExercises: ExerciseWithAsset[] = groupedExercises.flatMap(
-    (group: any) => group.exercises,
+  const {groupedExercises, routeParams} = route.params || {};
+
+  const allExercises: ExerciseWithAsset[] = React.useMemo(() => {
+    if (!groupedExercises || !Array.isArray(groupedExercises)) {
+      return [];
+    }
+    return groupedExercises.flatMap((group: any) => group.exercises || []);
+  }, [groupedExercises]);
+
+  const {state, toggleActive, pause, start} = useExerciseTimer(
+    allExercises.length,
+    EXERCISE_DURATION,
+    REST_DURATION,
   );
 
   const {
     totalSeconds,
-    currentExercise,
+    currentIndex,
     isRest,
     isActive,
-    progress,
-    start,
-    pause,
-    resume,
-  } = useExerciseTimer(allExercises);
+    exerciseSeconds,
+    restSeconds,
+    finished,
+  } = state;
 
-  const [beepSound, setBeepSound] = useState<any>(null);
+  // Sonido beep para últimos 3 segundos
+  const beepRef = useRef<Sound | null>(null);
+  const lastBeepKeyRef = useRef<string>('');
 
   useEffect(() => {
-    // Cargar sonido beep
-    // Sound.setCategory('Playback');
-    // const sound = new Sound('bip.mp3', Sound.MAIN_BUNDLE, error => {
-    //   if (error) {
-    //     console.log('Error loading sound', error);
-    //   }
-    // });
-    // setBeepSound(sound);
-
-    start(); // Iniciar automáticamente
-
+    const sound = new Sound('bip.mp3', Sound.MAIN_BUNDLE, error => {
+      if (error) {
+        console.warn('No se pudo cargar bip.mp3:', error);
+        return;
+      }
+      beepRef.current = sound;
+    });
     return () => {
-      // if (beepSound) {
-      //   beepSound.release();
-      // }
+      sound.release();
+      beepRef.current = null;
     };
   }, []);
 
-  // Reproducir beep en últimos 3 segundos
+  // Reproducir beep cuando quedan 3, 2 o 1 segundos en cualquiera de las fases.
   useEffect(() => {
-    const secondsInPhase = isRest ? 10 : 20;
-    const elapsed = Math.floor(progress * secondsInPhase);
-    const remaining = secondsInPhase - elapsed;
-
-    if (remaining <= 3 && remaining > 0) {
-      // if (beepSound) {
-      //   beepSound.play();
-      // }
+    if (!isActive || finished) {
+      return;
     }
-  }, [progress, isRest]);
+    let remaining: number;
+    if (isRest) {
+      remaining = restSeconds;
+    } else {
+      remaining = EXERCISE_DURATION - exerciseSeconds;
+    }
+    if (remaining > 0 && remaining <= 3) {
+      const key = `${currentIndex}-${isRest ? 'r' : 'e'}-${remaining}`;
+      if (lastBeepKeyRef.current !== key && beepRef.current) {
+        lastBeepKeyRef.current = key;
+        beepRef.current.stop(() => {
+          beepRef.current?.play();
+        });
+      }
+    }
+  }, [
+    restSeconds,
+    exerciseSeconds,
+    isRest,
+    isActive,
+    currentIndex,
+    finished,
+  ]);
 
+  // Auto-iniciar al montar
   useEffect(() => {
-    // Al terminar todos los ejercicios
-    if (currentExercise >= allExercises.length && !isActive) {
-      const routineNames = routeParams?.routines
-        ?.filter((r: any) => r.selected)
-        .map((r: any) => r.name) || [];
+    if (allExercises.length > 0) {
+      start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Navegar a Congratulations cuando termina la rutina
+  useEffect(() => {
+    if (finished) {
+      const routineNames =
+        routeParams?.routines
+          ?.filter((r: any) => r.selected)
+          .map((r: any) => r.name) || [];
 
       navigation.replace('Congratulations', {
         totalSeconds,
@@ -105,17 +141,61 @@ const StartRoutine: React.FC = () => {
         routineNames,
       });
     }
-  }, [currentExercise, isActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished]);
 
-  if (currentExercise >= allExercises.length) {
-    return null; // Transitioning
+  const handleExit = () => {
+    const wasActive = isActive;
+    if (wasActive) {
+      pause();
+    }
+    Alert.alert(
+      '¿Salir de la rutina?',
+      'Si salís ahora se perderá el progreso de esta sesión. ¿Estás seguro?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+          onPress: () => {
+            if (wasActive) {
+              start();
+            }
+          },
+        },
+        {
+          text: 'Salir',
+          style: 'destructive',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Home'}],
+            });
+          },
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+
+  if (allExercises.length === 0) {
+    return null;
   }
 
-  const exercise = allExercises[currentExercise];
+  const safeIndex = Math.min(currentIndex, allExercises.length - 1);
+  const exercise = allExercises[safeIndex];
+
+  if (!exercise) {
+    return null;
+  }
+
   const phaseColor = isRest ? theme.colors.danger : theme.colors.success;
   const phaseText = isRest ? 'DESCANSO' : 'EJERCICIO';
-  const secondsInPhase = isRest ? 10 : 20;
-  const secondsRemaining = Math.ceil(secondsInPhase - progress * secondsInPhase);
+  const secondsRemaining = isRest
+    ? restSeconds
+    : EXERCISE_DURATION - exerciseSeconds;
+  const progress = isRest
+    ? 1 - restSeconds / REST_DURATION
+    : exerciseSeconds / EXERCISE_DURATION;
 
   return (
     <>
@@ -127,15 +207,8 @@ const StartRoutine: React.FC = () => {
           theme.colors.gradientEnd,
         ]}
         style={styles.container}>
-        {/* Header con progreso */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'Home'}],
-              })
-            }>
+          <TouchableOpacity onPress={handleExit}>
             <Icon name="close" size={30} color={theme.colors.textPrimary} />
           </TouchableOpacity>
 
@@ -147,15 +220,23 @@ const StartRoutine: React.FC = () => {
                 color: theme.colors.textPrimary,
               },
             ]}>
-            {currentExercise + 1} / {allExercises.length}
+            {safeIndex + 1} / {allExercises.length}
           </Text>
 
           <View style={{width: 30}} />
         </View>
 
-        {/* GIF del ejercicio */}
         <View style={styles.exerciseContainer}>
-          <Image source={exercise.gif} style={styles.exerciseGif} />
+          {exercise.gif ? (
+            <Image source={exercise.gif} style={styles.exerciseGif} />
+          ) : (
+            <View
+              style={[
+                styles.exerciseGif,
+                {backgroundColor: 'rgba(255,255,255,0.1)'},
+              ]}
+            />
+          )}
           <Text
             style={[
               styles.exerciseName,
@@ -168,7 +249,6 @@ const StartRoutine: React.FC = () => {
           </Text>
         </View>
 
-        {/* Fase actual */}
         <View style={[styles.phaseContainer, {backgroundColor: phaseColor}]}>
           <Text
             style={[
@@ -182,7 +262,6 @@ const StartRoutine: React.FC = () => {
           </Text>
         </View>
 
-        {/* Timer grande */}
         <View style={styles.timerContainer}>
           <Text
             style={[
@@ -196,16 +275,14 @@ const StartRoutine: React.FC = () => {
           </Text>
         </View>
 
-        {/* Progress bar */}
         <ProgressBar progress={progress} color={phaseColor} />
 
-        {/* Botón pausar/reanudar */}
         <TouchableOpacity
           style={[
             styles.pauseButton,
             {backgroundColor: theme.colors.accent},
           ]}
-          onPress={isActive ? pause : resume}
+          onPress={toggleActive}
           activeOpacity={0.7}>
           <Icon
             name={isActive ? 'pause' : 'play'}
@@ -214,8 +291,7 @@ const StartRoutine: React.FC = () => {
           />
         </TouchableOpacity>
 
-        {/* Siguiente ejercicio preview */}
-        {currentExercise + 1 < allExercises.length && (
+        {safeIndex + 1 < allExercises.length && (
           <View style={styles.nextExerciseContainer}>
             <Text
               style={[
@@ -235,7 +311,7 @@ const StartRoutine: React.FC = () => {
                   color: theme.colors.textPrimary,
                 },
               ]}>
-              {allExercises[currentExercise + 1].showableName}
+              {allExercises[safeIndex + 1].showableName}
             </Text>
           </View>
         )}

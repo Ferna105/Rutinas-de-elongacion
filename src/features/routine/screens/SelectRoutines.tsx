@@ -100,7 +100,7 @@ const SelectRoutines: React.FC = () => {
               {
                 backgroundColor: routine.selected
                   ? 'rgba(65,189,252,0.2)'
-                  : 'rgba(255,255,255,0.05)',
+                  : 'rgba(255,255,255,0.12)',
                 borderColor: routine.selected
                   ? theme.colors.accent
                   : 'transparent',
@@ -121,7 +121,7 @@ const SelectRoutines: React.FC = () => {
                   color={
                     routine.selected
                       ? theme.colors.accent
-                      : theme.colors.textSecondary
+                      : theme.colors.textPrimary
                   }
                 />
                 <Text
@@ -129,9 +129,7 @@ const SelectRoutines: React.FC = () => {
                     styles.routineName,
                     {
                       fontFamily: theme.typography.fontFamily.bold,
-                      color: routine.selected
-                        ? theme.colors.textPrimary
-                        : theme.colors.textSecondary,
+                      color: theme.colors.textPrimary,
                     },
                   ]}>
                   {routine.name}
@@ -146,7 +144,7 @@ const SelectRoutines: React.FC = () => {
                     styles.levelLabel,
                     {
                       fontFamily: theme.typography.fontFamily.regular,
-                      color: theme.colors.textSecondary,
+                      color: theme.colors.textPrimary,
                     },
                   ]}>
                   Nivel:
@@ -154,7 +152,7 @@ const SelectRoutines: React.FC = () => {
                 <View
                   style={[
                     styles.pickerContainer,
-                    {backgroundColor: 'rgba(0,0,0,0.2)'},
+                    {backgroundColor: 'rgba(0,0,0,0.35)'},
                   ]}>
                   <Picker
                     selectedValue={routine.level.toString()}
@@ -162,10 +160,11 @@ const SelectRoutines: React.FC = () => {
                       setRoutineLevel(routine.rid, parseInt(value) as 1 | 2 | 3)
                     }
                     style={styles.picker}
-                    dropdownIconColor={theme.colors.textSecondary}>
-                    <Picker.Item label="1" value="1" />
-                    <Picker.Item label="2" value="2" />
-                    <Picker.Item label="3" value="3" />
+                    dropdownIconColor="#FFFFFF"
+                    mode="dropdown">
+                    <Picker.Item label="1" value="1" color="#000000" />
+                    <Picker.Item label="2" value="2" color="#000000" />
+                    <Picker.Item label="3" value="3" color="#000000" />
                   </Picker>
                 </View>
                 <Text
@@ -173,7 +172,7 @@ const SelectRoutines: React.FC = () => {
                     styles.exerciseCount,
                     {
                       fontFamily: theme.typography.fontFamily.regular,
-                      color: theme.colors.textSecondary,
+                      color: theme.colors.textPrimary,
                     },
                   ]}>
                   {routine.exercisesLength || 0} ejercicios
@@ -305,10 +304,14 @@ const styles = StyleSheet.create({
   pickerContainer: {
     borderRadius: 5,
     marginRight: 15,
+    minWidth: 110,
+    height: 50,
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   picker: {
-    width: 80,
-    height: 40,
+    width: 110,
+    height: 50,
     color: '#fff',
   },
   exerciseCount: {

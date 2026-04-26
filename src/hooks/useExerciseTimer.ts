@@ -1,5 +1,6 @@
-// Hook para timer de ejercicios
-// Corrige bugs: interval con deps correctas, pausa funcional
+// Hook para timer de ejercicios.
+// Refactor para evitar setStates anidados y el warning
+// "Maximum update depth exceeded".
 import {useState, useEffect, useRef, useCallback} from 'react';
 
 export interface TimerState {
@@ -10,6 +11,7 @@ export interface TimerState {
   totalExercises: number;
   isRest: boolean;
   isActive: boolean;
+  finished: boolean;
 }
 
 export const useExerciseTimer = (
@@ -19,15 +21,50 @@ export const useExerciseTimer = (
 ) => {
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [exerciseSeconds, setExerciseSeconds] = useState(0);
-  const [restSeconds, setRestSeconds] = useState(restDuration); // Corrige bug: era 5
+  const [restSeconds, setRestSeconds] = useState(restDuration);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isRest, setIsRest] = useState(true); // Empieza con descanso
+  const [isRest, setIsRest] = useState(true);
   const [isActive, setIsActive] = useState(false);
+  const [finished, setFinished] = useState(false);
+  const [shouldPlayBeep, setShouldPlayBeep] = useState(false);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Refs para acceder a estado actual dentro del setInterval sin recrearlo
+  const isActiveRef = useRef(isActive);
+  const isRestRef = useRef(isRest);
+  const exerciseSecondsRef = useRef(exerciseSeconds);
+  const restSecondsRef = useRef(restSeconds);
+  const currentIndexRef = useRef(currentIndex);
+  const finishedRef = useRef(finished);
+
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+  useEffect(() => {
+    isRestRef.current = isRest;
+  }, [isRest]);
+  useEffect(() => {
+    exerciseSecondsRef.current = exerciseSeconds;
+  }, [exerciseSeconds]);
+  useEffect(() => {
+    restSecondsRef.current = restSeconds;
+  }, [restSeconds]);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    finishedRef.current = finished;
+  }, [finished]);
 
   const toggleActive = useCallback(() => {
     setIsActive(prev => !prev);
+  }, []);
+
+  const start = useCallback(() => {
+    setIsActive(true);
+  }, []);
+
+  const pause = useCallback(() => {
+    setIsActive(false);
   }, []);
 
   const reset = useCallback(() => {
@@ -37,64 +74,58 @@ export const useExerciseTimer = (
     setRestSeconds(restDuration);
     setCurrentIndex(0);
     setIsRest(true);
+    setFinished(false);
+    setShouldPlayBeep(false);
   }, [restDuration]);
 
-  const nextExercise = useCallback(() => {
-    if (currentIndex + 1 < exerciseCount) {
-      setCurrentIndex(prev => prev + 1);
-      setExerciseSeconds(0);
-      setRestSeconds(restDuration);
-      setIsRest(true);
-    }
-    return currentIndex + 1 >= exerciseCount; // Retorna true si terminó
-  }, [currentIndex, exerciseCount, restDuration]);
-
-  // Timer principal - Corrige bug: deps explícitas
+  // Loop principal: un único setInterval que vive mientras el componente exista,
+  // controlado por refs (evita recrear el interval ante cada cambio de estado).
   useEffect(() => {
-    if (!isActive) {
-      return;
-    }
+    const id = setInterval(() => {
+      if (!isActiveRef.current || finishedRef.current) {
+        return;
+      }
 
-    intervalRef.current = setInterval(() => {
       setTotalSeconds(prev => prev + 1);
 
-      if (isRest) {
-        setRestSeconds(prev => {
-          if (prev <= 1) {
-            // Cambiar a ejercicio
-            setIsRest(false);
-            setExerciseSeconds(0);
-            return restDuration;
-          }
-          return prev - 1;
-        });
+      if (isRestRef.current) {
+        const next = restSecondsRef.current - 1;
+        if (next <= 0) {
+          // Termina descanso, empieza ejercicio
+          setIsRest(false);
+          setExerciseSeconds(0);
+          setRestSeconds(restDuration);
+          setShouldPlayBeep(false);
+        } else {
+          setRestSeconds(next);
+          setShouldPlayBeep(next <= 3);
+        }
       } else {
-        setExerciseSeconds(prev => {
-          if (prev >= exerciseDuration - 1) {
-            // Cambiar a descanso o siguiente ejercicio
-            const isFinished = nextExercise();
-            if (!isFinished) {
-              setIsRest(true);
-              setRestSeconds(restDuration);
-            }
-            return 0;
+        const next = exerciseSecondsRef.current + 1;
+        if (next >= exerciseDuration) {
+          // Termina ejercicio
+          const isLast = currentIndexRef.current + 1 >= exerciseCount;
+          if (isLast) {
+            setFinished(true);
+            setIsActive(false);
+            setExerciseSeconds(exerciseDuration);
+            setShouldPlayBeep(false);
+          } else {
+            setCurrentIndex(prev => prev + 1);
+            setIsRest(true);
+            setExerciseSeconds(0);
+            setRestSeconds(restDuration);
+            setShouldPlayBeep(false);
           }
-          return prev + 1;
-        });
+        } else {
+          setExerciseSeconds(next);
+          setShouldPlayBeep(exerciseDuration - next <= 3);
+        }
       }
     }, 1000);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isActive, isRest, exerciseDuration, restDuration, nextExercise]);
-
-  // Detectar si está en los últimos 3 segundos (para beep)
-  const shouldPlayBeep =
-    (isRest && restSeconds <= 3) ||
-    (!isRest && exerciseSeconds >= exerciseDuration - 3);
+    return () => clearInterval(id);
+  }, [exerciseDuration, restDuration, exerciseCount]);
 
   const state: TimerState = {
     totalSeconds,
@@ -104,13 +135,15 @@ export const useExerciseTimer = (
     totalExercises: exerciseCount,
     isRest,
     isActive,
+    finished,
   };
 
   return {
     state,
     toggleActive,
+    start,
+    pause,
     reset,
-    nextExercise,
     shouldPlayBeep,
   };
 };

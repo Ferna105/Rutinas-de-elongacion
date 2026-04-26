@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {useTheme} from '../../theme';
+import {useTheme} from '../theme';
 
 // Placeholder temporal mientras implementamos las pantallas del app
 const PlaceholderScreen: React.FC<{title: string}> = ({title}) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import {HomeScreen, Explore, Configuration} from '../../screens/app';
+import {HomeScreen, Explore, Configuration} from '../screens/app';
 import {
   SelectRoutines,
   AddAccessory,
@@ -8,8 +8,8 @@ import {
   RoutineInformation,
   StartRoutine,
   Congratulations,
-} from '../../features/routine/screens';
-import {useTheme} from '../../theme';
+} from '../features/routine/screens';
+import {useTheme} from '../theme';
 
 const Stack = createStackNavigator();
 
@@ -20,11 +20,12 @@ const AppNavigator: React.FC = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.gradientEnd,
         },
-        headerTintColor: theme.colors.textPrimary,
+        headerTintColor: '#FFFFFF',
         headerTitleStyle: {
           fontFamily: theme.typography.fontFamily.bold,
+          color: '#FFFFFF',
         },
       }}>
       <Stack.Screen

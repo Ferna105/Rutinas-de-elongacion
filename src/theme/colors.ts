@@ -34,16 +34,17 @@ export const colors = {
   switchTrackInactive: '#3e3e3e',
 };
 
-// Tema claro (nuevo, no existía en la app original)
+// Tema claro: usa un gradient azul (claro -> oscuro) y mantiene texto blanco
+// para asegurar buen contraste sobre el fondo azul.
 export const lightColors = {
   ...colors,
-  textPrimary: '#000000',
-  textSecondary: '#4a4a4a',
-  surface: '#FFFFFF',
-  background: '#F5F5F5',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#e5dfdf',
+  surface: '#0f4c81',
+  background: '#0f4c81',
   gradientStart: '#41BDFC',
-  gradientMid: '#0f4c81',
-  gradientEnd: '#FFFFFF',
+  gradientMid: '#0058BA',
+  gradientEnd: '#0f4c81',
 };
 
 // Tema oscuro (mantiene la identidad visual original)

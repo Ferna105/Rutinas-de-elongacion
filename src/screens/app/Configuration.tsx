@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../theme';
@@ -17,9 +16,8 @@ import {getSports} from '../../data/queries';
 import {SportSelection} from '../../data/types';
 
 const Configuration: React.FC = () => {
-  const navigation = useNavigation<any>();
   const {theme, themeMode, setThemeMode} = useTheme();
-  const {profile, updateProfile, signOut} = useAuth();
+  const {profile, updateProfile} = useAuth();
   
   const [practicesSport, setPracticesSport] = useState(false);
   const [selectedSports, setSelectedSports] = useState<SportSelection[]>([]);
@@ -53,23 +51,6 @@ const Configuration: React.FC = () => {
     } catch (error) {
       Alert.alert('Error', 'No se pudo guardar el perfil');
     }
-  };
-
-  const handleSignOut = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro de que querés cerrar sesión?',
-      [
-        {text: 'Cancelar', style: 'cancel'},
-        {
-          text: 'Cerrar sesión',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-          },
-        },
-      ],
-    );
   };
 
   return (
@@ -217,26 +198,6 @@ const Configuration: React.FC = () => {
             GUARDAR CAMBIOS
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.signOutButton,
-            {backgroundColor: theme.colors.danger},
-          ]}
-          onPress={handleSignOut}
-          activeOpacity={0.7}>
-          <Icon name="logout" size={24} color={theme.colors.textOnButton} />
-          <Text
-            style={[
-              styles.signOutButtonText,
-              {
-                fontFamily: theme.typography.fontFamily.bold,
-                color: theme.colors.textOnButton,
-              },
-            ]}>
-            CERRAR SESIÓN
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
@@ -299,18 +260,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   saveButtonText: {
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  signOutButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  signOutButtonText: {
     fontSize: 16,
     marginLeft: 10,
   },

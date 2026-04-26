@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -13,25 +13,53 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../../theme';
-import {useRoutineBuilder} from '../../../hooks';
-import {ExerciseWithAsset} from '../../../data/types';
+import {
+  getGeneratedRoutine,
+  getGeneratedRoutineShowableExercises,
+} from '../../../data/queries';
+import {
+  ExerciseWithAsset,
+  RoutineSelection,
+  ChainSelection,
+} from '../../../data/types';
 
 const RoutineInformation: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
-  const {generateGroupedRoutine, calculateTotalMinutes} = useRoutineBuilder();
 
-  const [groupedExercises, setGroupedExercises] = useState<
-    Array<{title: string; exercises: ExerciseWithAsset[]}>
-  >([]);
+  // Estabilizamos las referencias para que useMemo/useEffect no se disparen en cada render.
+  const routinesParam = route.params?.routines;
+  const chainsParam = route.params?.chains;
+  const routines: RoutineSelection[] = useMemo(
+    () => routinesParam || [],
+    [routinesParam],
+  );
+  const chains: ChainSelection[] = useMemo(
+    () => chainsParam || [],
+    [chainsParam],
+  );
+
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseWithAsset | null>(null);
 
-  useEffect(() => {
-    const grouped = generateGroupedRoutine();
-    setGroupedExercises(grouped);
-  }, []);
+  const totalMinutes = useMemo(() => {
+    const exercises = getGeneratedRoutine({routines, chains});
+    const totalSeconds = exercises.length * (20 + 10);
+    return Math.ceil(totalSeconds / 60);
+  }, [routines, chains]);
+
+  // Calculamos los grupos directamente en useMemo para evitar setStates en useEffect
+  // que provoquen "Maximum update depth exceeded".
+  const groupedExercises = useMemo<
+    Array<{title: string; exercises: ExerciseWithAsset[]}>
+  >(() => {
+    const grouped = getGeneratedRoutineShowableExercises({routines, chains});
+    return Object.entries(grouped).map(([title, exercises]) => ({
+      title,
+      exercises,
+    }));
+  }, [routines, chains]);
 
   const handleStart = () => {
     Alert.alert(
@@ -55,7 +83,6 @@ const RoutineInformation: React.FC = () => {
     (sum, group) => sum + group.exercises.length,
     0,
   );
-  const totalMinutes = calculateTotalMinutes();
 
   return (
     <LinearGradient
@@ -66,7 +93,6 @@ const RoutineInformation: React.FC = () => {
       ]}
       style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Resumen superior */}
         <View
           style={[
             styles.summaryCard,
@@ -123,7 +149,6 @@ const RoutineInformation: React.FC = () => {
           </View>
         </View>
 
-        {/* Lista de ejercicios agrupados */}
         {groupedExercises.map((group, groupIndex) => (
           <View key={groupIndex} style={styles.groupContainer}>
             <Text
@@ -146,7 +171,19 @@ const RoutineInformation: React.FC = () => {
                 ]}
                 onPress={() => setSelectedExercise(exercise)}
                 activeOpacity={0.7}>
-                <Image source={exercise.gif} style={styles.exerciseThumbnail} />
+                {exercise.gif ? (
+                  <Image
+                    source={exercise.gif}
+                    style={styles.exerciseThumbnail}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.exerciseThumbnail,
+                      {backgroundColor: 'rgba(255,255,255,0.1)'},
+                    ]}
+                  />
+                )}
                 <View style={styles.exerciseInfo}>
                   <Text
                     style={[
@@ -180,7 +217,6 @@ const RoutineInformation: React.FC = () => {
         ))}
       </ScrollView>
 
-      {/* Botón de inicio */}
       <TouchableOpacity
         style={[styles.startButton, {backgroundColor: theme.colors.accent}]}
         onPress={handleStart}
@@ -198,7 +234,6 @@ const RoutineInformation: React.FC = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Modal de detalle de ejercicio */}
       <Modal
         visible={selectedExercise !== null}
         animationType="slide"
@@ -219,10 +254,19 @@ const RoutineInformation: React.FC = () => {
 
               {selectedExercise && (
                 <>
-                  <Image
-                    source={selectedExercise.gif}
-                    style={styles.modalGif}
-                  />
+                  {selectedExercise.gif ? (
+                    <Image
+                      source={selectedExercise.gif}
+                      style={styles.modalGif}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.modalGif,
+                        {backgroundColor: 'rgba(255,255,255,0.1)'},
+                      ]}
+                    />
+                  )}
                   <Text
                     style={[
                       styles.modalTitle,

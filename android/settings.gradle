@@ -1,5 +1,17 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://www.jitpack.io") }
+        // Local repo provided by @react-native-async-storage/async-storage
+        maven { url = uri("${rootDir}/../node_modules/@react-native-async-storage/async-storage/android/local_repo") }
+    }
+}
+
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'RutinasDeElongacion'
 include ':app'

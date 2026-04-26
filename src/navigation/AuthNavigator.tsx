@@ -1,7 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import {StatusSelection, SportsSelection, SuccessScreen} from '../../screens/auth';
-import {useTheme} from '../../theme';
+import {StatusSelection, SportsSelection, SuccessScreen} from '../screens/auth';
+import {useTheme} from '../theme';
 
 const Stack = createStackNavigator();
 
@@ -12,11 +12,12 @@ const AuthNavigator: React.FC = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.gradientEnd,
         },
-        headerTintColor: theme.colors.textPrimary,
+        headerTintColor: '#FFFFFF',
         headerTitleStyle: {
           fontFamily: theme.typography.fontFamily.bold,
+          color: '#FFFFFF',
         },
         headerTitle: 'Completá tu perfil',
       }}>
