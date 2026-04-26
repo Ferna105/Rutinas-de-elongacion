@@ -1,97 +1,376 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Rutinas de Elongación
 
-# Getting Started
+Aplicación móvil de React Native CLI + TypeScript para rutinas de elongación miofascial.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Estado del Proyecto
 
-## Step 1: Start Metro
+### ✅ Completado
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+#### 1. Infraestructura Base
+- ✅ Proyecto React Native CLI 0.85 con TypeScript
+- ✅ Git repository independiente inicializado
+- ✅ Configuración de display name "Rutinas de elongación"
+- ✅ Estructura de carpetas organizada por features
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+#### 2. Sistema de Tema
+- ✅ Paleta de colores completa (primarios, acentos, gradientes, estados)
+- ✅ Sistema tipográfico con Raleway (Regular, Bold)
+- ✅ Tokens de espaciado y border radius
+- ✅ Soporte light/dark mode con `useColorScheme`
+- ✅ Persistencia de preferencia de tema en AsyncStorage
+- ✅ `ThemeProvider` y hook `useTheme`
+- **Ubicación**: `src/theme/`
 
-```sh
-# Using npm
-npm start
+#### 3. Capa de Datos
+- ✅ Tipos TypeScript completos para todas las entidades
+- ✅ Database loader con 7 cadenas, 12 deportes, 13 rutinas
+- ✅ Assets mapper para GIFs, imágenes y sonidos
+- ✅ Queries tipadas sin mutaciones (corrige bugs del original)
+- ✅ Helpers para generación de rutinas personalizadas
+- **Ubicación**: `src/data/`
 
-# OR using Yarn
-yarn start
+**Bugs Corregidos**:
+- ❌ Variable global implícita en `getExerciseByCid` → ✅ Scope correcto
+- ❌ Mutaciones en queries → ✅ Inmutabilidad
+- ❌ `JSON.parse('')` al hacer logout → ✅ `removeItem()` + validaciones
+- ❌ Sin defensas en `getGeneratedRoutine` → ✅ Validaciones añadidas
+
+#### 4. Storage
+- ✅ Wrapper tipado para AsyncStorage
+- ✅ Gestión de perfil de usuario
+- ✅ Gestión de historial de sesiones
+- ✅ Manejo de errores robusto
+- **Ubicación**: `src/storage/`
+
+#### 5. Autenticación
+- ✅ `AuthContext` y `AuthProvider`
+- ✅ Hook `useAuth` con signIn/signOut/updateProfile
+- ✅ Carga automática de perfil al iniciar
+- ✅ Navegación condicional según estado de auth
+- **Ubicación**: `src/components/AuthContext.tsx`
+
+#### 6. Navegación
+- ✅ `AuthNavigator` con 3 pantallas de onboarding
+- ✅ `AppNavigator` (estructura lista para pantallas)
+- ✅ Integración con React Navigation v6
+- **Ubicación**: `src/navigation/`
+
+#### 7. Pantallas de Onboarding (AuthStack)
+- ✅ **StatusSelection**: ¿Practica deporte? (Sí/No)
+- ✅ **SportsSelection**: Selección de deportes con checkboxes
+- ✅ **SuccessScreen**: Confirmación y guardar perfil
+- **Ubicación**: `src/screens/auth/`
+
+#### 8. Hooks Custom
+- ✅ `useRoutineBuilder`: Gestión de estado de rutina personalizada
+- ✅ `useExerciseTimer`: Timer con deps correctas, pausa, beep
+- **Ubicación**: `src/hooks/`
+
+#### 9. Assets
+- ✅ 7 imágenes de cadenas musculares (PNG)
+- ✅ 90 GIFs de ejercicios
+- ✅ 16 imágenes de slider para carousel
+- ✅ Sonido `bip.mp3` para timer
+- ✅ Fuentes Raleway vinculadas con `react-native-asset`
+- ✅ Soporte GIF animado en Android (Fresco configurado)
+- **Ubicación**: `src/assets/`
+
+#### 10. Dependencias
+- ✅ React Navigation (native, stack, bottom-tabs)
+- ✅ AsyncStorage
+- ✅ Linear Gradient
+- ✅ Vector Icons
+- ✅ Sound
+- ✅ Keep Awake
+- ✅ Picker
+- ✅ Reanimated v3
+- ✅ Gesture Handler
+- ✅ Reanimated Carousel
+
+---
+
+### 🚧 Pendiente de Implementar
+
+#### 11. HomeScreen
+**Ubicación**: `src/screens/app/HomeScreen.tsx`
+
+- [ ] Carousel con tips de elongación (16 sliders)
+- [ ] Botón "Comenzar" → navegación a SelectRoutines
+- [ ] Botón "Explorar" → navegación a Explore
+- [ ] Botón "Configuración" → navegación a Configuration
+- [ ] (Opcional) Panel de historial de sesiones recientes
+
+**Patrón a seguir**:
+```typescript
+// Usar react-native-reanimated-carousel
+// Ver sliderImages en src/data/assets.ts
+// LinearGradient como fondo
 ```
 
-## Step 2: Build and run your app
+#### 12. Flujo CreateRoutine
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+**12.1 SelectRoutines**
+**Ubicación**: `src/features/routine/screens/SelectRoutines.tsx`
 
-### Android
+- [ ] Cargar rutinas con `getUserRoutines(profile)`
+- [ ] Lista con checkbox y Picker de nivel (1/2/3)
+- [ ] Calcular tiempo estimado: `level * (n * 30) segundos`
+- [ ] Pre-seleccionar rutina "General"
+- [ ] Botón "Siguiente" → AddAccessory
 
-```sh
-# Using npm
-npm run android
+**12.2 AddAccessory**
+**Ubicación**: `src/features/routine/screens/AddAccessory.tsx`
 
-# OR using Yarn
-yarn android
+- [ ] Pregunta "¿Añadir ejercicios accesorios?"
+- [ ] Botón "Sí" → AccessoryExercises
+- [ ] Botón "No" → RoutineInformation
+
+**12.3 AccessoryExercises**
+**Ubicación**: `src/features/routine/screens/AccessoryExercises.tsx`
+
+- [ ] Grid 2 columnas con `getChains()`
+- [ ] Tap en cadena → Alert con 3 niveles
+- [ ] Mostrar tiempo estimado por nivel
+- [ ] Botón "Siguiente" → RoutineInformation
+
+**12.4 RoutineInformation**
+**Ubicación**: `src/features/routine/screens/RoutineInformation.tsx`
+
+- [ ] Generar con `getGeneratedRoutineShowableExercises()`
+- [ ] Lista agrupada por nombre de rutina/accesorios
+- [ ] Modal de detalle con GIF al hacer tap
+- [ ] Mostrar tiempo total
+- [ ] Alert pre-inicio (tensión vs dolor, 20s/10s)
+- [ ] Botón "INICIAR" → StartRoutine
+
+#### 13. StartRoutine
+**Ubicación**: `src/features/routine/screens/StartRoutine.tsx`
+
+- [ ] Usar hook `useExerciseTimer`
+- [ ] Mostrar GIF del ejercicio actual
+- [ ] Timer grande: rojo (descanso) / verde (ejercicio)
+- [ ] Barra de progreso cross-platform (`react-native-progress`)
+- [ ] Botón Pausar/Reanudar
+- [ ] Reproducir `bip.mp3` en últimos 3s con `react-native-sound`
+- [ ] `react-native-keep-awake` activo durante sesión
+- [ ] Confirmación al salir (beforeRemove)
+- [ ] Al terminar → Congratulations
+
+**Componentes sugeridos**:
+```typescript
+import {useExerciseTimer} from '../../../hooks';
+import KeepAwake from 'react-native-keep-awake';
+import Sound from 'react-native-sound';
+import * as Progress from 'react-native-progress';
 ```
 
-### iOS
+#### 14. Congratulations
+**Ubicación**: `src/features/routine/screens/Congratulations.tsx`
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+- [ ] Recibir props: `{totalSeconds, exercisesDone, routineNames}`
+- [ ] Icono de éxito
+- [ ] Mostrar métricas de sesión
+- [ ] Guardar en historial con `addSession()`
+- [ ] Botón "VOLVER AL INICIO" → Home
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+#### 15. Explore
+**Ubicación**: `src/screens/app/Explore.tsx`
 
-```sh
-bundle install
+- [ ] Lista de `getShowableExercises()`
+- [ ] Tap → Modal con nombre, GIF, descripción
+- [ ] Botón cerrar modal
+- [ ] Botón "VOLVER" → goBack()
+
+#### 16. Configuration
+**Ubicación**: `src/screens/app/Configuration.tsx`
+
+- [ ] Cargar perfil actual
+- [ ] Switch "Practico deporte"
+- [ ] Checkboxes de deportes (si switch = true)
+- [ ] Selector de tema (Auto/Light/Dark) con `setThemeMode`
+- [ ] (Opcional) Inputs para tiempos 20s/10s personalizados
+- [ ] Botón "Guardar" → `updateProfile()`
+- [ ] Botón "Cerrar sesión" → `signOut()`
+
+---
+
+## Estructura del Proyecto
+
+```
+src/
+├── assets/              # Assets estáticos
+│   ├── Cadenas/        # 7 PNGs de cadenas musculares
+│   ├── Ejercicios/     # 90 GIFs de ejercicios
+│   ├── slider/         # 16 imágenes para carousel
+│   ├── sounds/         # bip.mp3
+│   ├── fonts/          # Raleway (Regular, Bold, etc.)
+│   └── images/         # logo, icon, splash
+├── components/         # Componentes compartidos
+│   └── AuthContext.tsx # Context de autenticación
+├── data/              # Capa de datos
+│   ├── types.ts       # Tipos TypeScript
+│   ├── database.ts    # Datos hardcodeados
+│   ├── assets.ts      # Mapper de require()
+│   ├── queries.ts     # Queries tipadas
+│   └── index.ts
+├── features/          # Features organizadas
+│   └── routine/       # Feature de rutinas
+│       ├── screens/   # Pantallas del flujo
+│       └── hooks/     # Hooks específicos
+├── hooks/             # Hooks globales
+│   ├── useRoutineBuilder.ts
+│   ├── useExerciseTimer.ts
+│   └── index.ts
+├── navigation/        # Navegación
+│   ├── AuthNavigator.tsx
+│   ├── AppNavigator.tsx
+│   └── index.ts
+├── screens/           # Pantallas
+│   ├── auth/         # Onboarding
+│   └── app/          # App principal
+├── storage/          # Storage wrapper
+│   └── profile.ts
+└── theme/            # Sistema de diseño
+    ├── colors.ts
+    ├── typography.ts
+    ├── spacing.ts
+    ├── radius.ts
+    ├── theme.ts
+    ├── ThemeProvider.tsx
+    └── index.ts
 ```
 
-Then, and every time you update your native dependencies, run:
+---
 
-```sh
-bundle exec pod install
+## Configuración de Desarrollo
+
+### Requisitos
+- Node.js >= 20
+- React Native CLI
+- Xcode (para iOS)
+- Android Studio (para Android)
+
+### Instalación
+```bash
+cd rutinas-de-elongacion
+npm install
+
+# iOS
+cd ios && bundle install && bundle exec pod install && cd ..
+
+# Android (GIFs ya configurados con Fresco en build.gradle)
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Ejecutar
+```bash
+# iOS
+npx react-native run-ios
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+# Android
+npx react-native run-android
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Notas de Implementación
 
-## Step 3: Modify your app
+### Database
+Por ahora, los datos están hardcodeados en `src/data/database.ts`. Para simplificar, solo se incluyen muestras de ejercicios y vínculos. En producción:
+1. Completar los 90 ejercicios en el array
+2. Completar los 152 vínculos exercises_routines
+3. O migrar a `database.json` y cargarlo dinámicamente
 
-Now that you have successfully run the app, let's make changes!
+### Patrones de Código
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+**Componentes de pantalla**:
+```typescript
+import React from 'react';
+import {View, Text, StyleSheet} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import {useTheme} from '../theme';
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+const MyScreen: React.FC = () => {
+  const {theme} = useTheme();
+  
+  return (
+    <LinearGradient
+      colors={[
+        theme.colors.gradientStart,
+        theme.colors.gradientMid,
+        theme.colors.gradientEnd,
+      ]}
+      style={styles.container}>
+      {/* content */}
+    </LinearGradient>
+  );
+};
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+const styles = StyleSheet.create({
+  container: {flex: 1},
+});
 
-## Congratulations! :tada:
+export default MyScreen;
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+**Botones**:
+```typescript
+<TouchableOpacity
+  style={[styles.button, {backgroundColor: theme.colors.accent}]}
+  onPress={handlePress}
+  activeOpacity={0.7}>
+  <Text style={[styles.text, {
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textOnButton,
+  }]}>
+    TEXTO
+  </Text>
+</TouchableOpacity>
+```
 
-### Now what?
+### iOS Pods
+Si tienes problemas con CocoaPods, ejecuta:
+```bash
+cd ios
+export LANG=en_US.UTF-8
+pod install
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+---
 
-# Troubleshooting
+## Bugs Corregidos vs Original
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+| Bug Original | Solución |
+|--------------|----------|
+| Variable global `chain_exercises` | Scope con `const` |
+| Mutación de objetos en queries | Inmutabilidad con spread |
+| `JSON.parse('')` en logout | `removeItem()` + validación |
+| Sin defensas en `getGeneratedRoutine` | Validaciones de `sports` vacío |
+| Timer sin array de deps | `useEffect` con deps explícitas |
+| `secondsRest` inicia en 5 | Inicializa en `restDuration` (10) |
+| `ProgressBarAndroid` solo Android | Usar `react-native-progress` |
 
-# Learn More
+---
 
-To learn more about React Native, take a look at the following resources:
+## Siguientes Pasos
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+1. **Completar pantallas pendientes** (HomeScreen, CreateRoutine, etc.)
+2. **Integrar navigation** en AppNavigator con todas las rutas
+3. **Testing** en iOS y Android reales
+4. **Completar database** con los 90 ejercicios y 152 vínculos
+5. **Assets de app** (icon, splash screen nativos)
+6. **Optimizaciones** (memo, lazy loading de GIFs)
+
+---
+
+## Referencias
+
+- Análisis completo en `.cursor/plans/analisis_y_blueprint_lm_*.plan.md`
+- Proyecto original en `../LiberacionesMiofasciales/`
+- React Navigation: https://reactnavigation.org/
+- React Native Reanimated: https://docs.swmansion.com/react-native-reanimated/
+
+---
+
+**Autor**: Implementación basada en análisis exhaustivo del proyecto original  
+**Fecha**: Abril 2026  
+**Stack**: React Native CLI 0.85 + TypeScript
