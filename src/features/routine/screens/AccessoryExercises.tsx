@@ -1,25 +1,33 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Image,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useTheme} from '../../../theme';
-import {getChains} from '../../../data/queries';
+import {
+  getChains,
+  getExerciseByCid,
+  minutesForLevel,
+  calculateTotalMinutes,
+} from '../../../data/queries';
 import {useRoutineBuilder, useScreenInsets} from '../../../hooks';
+import {RoutineSelection} from '../../../data/types';
+import RoutineProgress from '../../../components/RoutineProgress';
+import AppModal, {ModalButton} from '../../../components/AppModal';
 
 const AccessoryExercises: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
   const insets = useScreenInsets();
-  const {chains, setChains, toggleChainSelection, setChainLevel} = useRoutineBuilder();
+  const {chains, setChains, toggleChainSelection, setChainLevel} =
+    useRoutineBuilder();
 
   const allChains = useMemo(() => getChains(), []);
 
@@ -27,6 +35,30 @@ const AccessoryExercises: React.FC = () => {
     () => new Map(chains.map(c => [c.cid, c])),
     [chains],
   );
+
+  const previousRoutines: RoutineSelection[] = useMemo(
+    () => route.params?.routines || [],
+    [route.params?.routines],
+  );
+
+  // Pre-calcula longitudes por cadena (cantidad de ejercicios)
+  const chainLengthById = useMemo(() => {
+    const map = new Map<string, number>();
+    allChains.forEach(c => {
+      map.set(c.cid, getExerciseByCid(c.cid).length);
+    });
+    return map;
+  }, [allChains]);
+
+  const totalMinutes = useMemo(
+    () => calculateTotalMinutes(previousRoutines, chains),
+    [previousRoutines, chains],
+  );
+
+  const [pickerChain, setPickerChain] = useState<{
+    cid: string;
+    name: string;
+  } | null>(null);
 
   useEffect(() => {
     setChains(
@@ -43,40 +75,11 @@ const AccessoryExercises: React.FC = () => {
 
   const handleChainPress = (cid: string, name: string) => {
     const chain = chainStateById.get(cid);
-    
+
     if (chain?.selected) {
-      // Deseleccionar
       toggleChainSelection(cid);
     } else {
-      // Mostrar selector de nivel
-      Alert.alert(
-        name,
-        '¿Qué nivel querés entrenar?',
-        [
-          {
-            text: 'Nivel 1',
-            onPress: () => {
-              setChainLevel(cid, 1);
-              toggleChainSelection(cid);
-            },
-          },
-          {
-            text: 'Nivel 2',
-            onPress: () => {
-              setChainLevel(cid, 2);
-              toggleChainSelection(cid);
-            },
-          },
-          {
-            text: 'Nivel 3',
-            onPress: () => {
-              setChainLevel(cid, 3);
-              toggleChainSelection(cid);
-            },
-          },
-          {text: 'Cancelar', style: 'cancel'},
-        ],
-      );
+      setPickerChain({cid, name});
     }
   };
 
@@ -89,6 +92,23 @@ const AccessoryExercises: React.FC = () => {
 
   const selectedCount = chains.filter(c => c.selected).length;
 
+  const pickerOptions: ModalButton[] = useMemo(() => {
+    if (!pickerChain) {
+      return [];
+    }
+    const length = chainLengthById.get(pickerChain.cid) || 0;
+    return [
+      ...([1, 2, 3] as const).map(level => ({
+        text: `${minutesForLevel(length, level)} min`,
+        onPress: () => {
+          setChainLevel(pickerChain.cid, level);
+          toggleChainSelection(pickerChain.cid);
+        },
+      })),
+      {text: 'Cancelar', style: 'cancel' as const},
+    ];
+  }, [pickerChain, chainLengthById, setChainLevel, toggleChainSelection]);
+
   return (
     <LinearGradient
       colors={[
@@ -97,10 +117,11 @@ const AccessoryExercises: React.FC = () => {
         theme.colors.gradientEnd,
       ]}
       style={styles.container}>
-      <ScrollView contentContainerStyle={{
-        ...styles.scrollContent,
-        paddingBottom: 100 + insets.bottom,
-      }}>
+      <ScrollView
+        contentContainerStyle={{
+          ...styles.scrollContent,
+          paddingBottom: 100 + insets.bottom,
+        }}>
         <Text
           style={[
             styles.title,
@@ -109,7 +130,7 @@ const AccessoryExercises: React.FC = () => {
               color: theme.colors.textPrimary,
             },
           ]}>
-          Cadenas Musculares
+          Cadenas musculares
         </Text>
 
         <Text
@@ -120,14 +141,19 @@ const AccessoryExercises: React.FC = () => {
               color: theme.colors.textSecondary,
             },
           ]}>
-          Tocá una cadena para seleccionar el nivel
+          Tocá una cadena para sumarla y elegir cuántos minutos.
         </Text>
+
+        <RoutineProgress totalMinutes={totalMinutes} />
 
         <View style={styles.grid}>
           {allChains.map(chain => {
             const chainState = chainStateById.get(chain.cid);
             const isSelected = chainState?.selected || false;
             const level = chainState?.level || 1;
+            const minutes = isSelected
+              ? minutesForLevel(chainLengthById.get(chain.cid) || 0, level)
+              : 0;
 
             return (
               <TouchableOpacity
@@ -161,18 +187,18 @@ const AccessoryExercises: React.FC = () => {
                 {isSelected && (
                   <View
                     style={[
-                      styles.levelBadge,
+                      styles.minutesBadge,
                       {backgroundColor: theme.colors.accent},
                     ]}>
                     <Text
                       style={[
-                        styles.levelText,
+                        styles.minutesText,
                         {
                           fontFamily: theme.typography.fontFamily.bold,
                           color: theme.colors.textOnButton,
                         },
                       ]}>
-                      Nivel {level}
+                      {minutes} min
                     </Text>
                   </View>
                 )}
@@ -185,7 +211,7 @@ const AccessoryExercises: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          {backgroundColor: theme.colors.accent, bottom: 20},
+          {backgroundColor: theme.colors.accent, bottom: 20 + insets.bottom},
         ]}
         onPress={handleNext}
         activeOpacity={0.7}>
@@ -197,9 +223,19 @@ const AccessoryExercises: React.FC = () => {
               color: theme.colors.textOnButton,
             },
           ]}>
-          {selectedCount > 0 ? `SIGUIENTE (${selectedCount})` : 'CONTINUAR SIN ACCESORIOS'}
+          {selectedCount > 0
+            ? `SIGUIENTE (${selectedCount})`
+            : 'CONTINUAR SIN ACCESORIOS'}
         </Text>
       </TouchableOpacity>
+
+      <AppModal
+        visible={pickerChain !== null}
+        title={pickerChain?.name || ''}
+        message="¿Cuántos minutos querés agregar?"
+        buttons={pickerOptions}
+        onClose={() => setPickerChain(null)}
+      />
     </LinearGradient>
   );
 };
@@ -210,15 +246,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
   },
   title: {
     fontSize: 24,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
+    fontSize: 15,
+    marginBottom: 16,
   },
   grid: {
     flexDirection: 'row',
@@ -227,35 +262,35 @@ const styles = StyleSheet.create({
   },
   chainCard: {
     width: '48%',
-    padding: 15,
+    padding: 14,
     borderRadius: 10,
-    marginBottom: 15,
+    marginBottom: 14,
     borderWidth: 2,
     alignItems: 'center',
   },
   chainImage: {
     width: 100,
     height: 100,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   chainName: {
     fontSize: 14,
     textAlign: 'center',
   },
-  levelBadge: {
+  minutesBadge: {
     marginTop: 8,
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 12,
   },
-  levelText: {
+  minutesText: {
     fontSize: 12,
   },
   nextButton: {
     position: 'absolute',
     left: 20,
     right: 20,
-    padding: 20,
+    padding: 18,
     borderRadius: 10,
     alignItems: 'center',
     elevation: 5,

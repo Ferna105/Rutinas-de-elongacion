@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Switch,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,6 +13,7 @@ import {useTheme} from '../../theme';
 import {useAuth} from '../../components/AuthContext';
 import {getSports} from '../../data/queries';
 import {SportSelection} from '../../data/types';
+import AppModal from '../../components/AppModal';
 
 const Configuration: React.FC = () => {
   const {theme, themeMode, setThemeMode} = useTheme();
@@ -21,6 +21,10 @@ const Configuration: React.FC = () => {
   
   const [practicesSport, setPracticesSport] = useState(false);
   const [selectedSports, setSelectedSports] = useState<SportSelection[]>([]);
+  const [resultModal, setResultModal] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -47,9 +51,15 @@ const Configuration: React.FC = () => {
         status: practicesSport,
         sports: practicesSport ? selected : [],
       });
-      Alert.alert('Éxito', 'Perfil actualizado correctamente');
+      setResultModal({
+        title: 'Éxito',
+        message: 'Perfil actualizado correctamente',
+      });
     } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar el perfil');
+      setResultModal({
+        title: 'Error',
+        message: 'No se pudo guardar el perfil',
+      });
     }
   };
 
@@ -199,6 +209,13 @@ const Configuration: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <AppModal
+        visible={resultModal !== null}
+        title={resultModal?.title || ''}
+        message={resultModal?.message}
+        onClose={() => setResultModal(null)}
+      />
     </LinearGradient>
   );
 };

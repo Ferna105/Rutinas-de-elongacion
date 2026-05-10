@@ -7,7 +7,6 @@ import {
   Modal,
   Image,
   ScrollView,
-  Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
@@ -24,6 +23,7 @@ import {
   RoutineSelection,
   ChainSelection,
 } from '../../../data/types';
+import AppModal from '../../../components/AppModal';
 
 type ListItem =
   | {type: 'header'; title: string; groupIndex: number}
@@ -110,6 +110,7 @@ const RoutineInformation: React.FC = () => {
 
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseWithAsset | null>(null);
+  const [showStartReminder, setShowStartReminder] = useState(false);
 
   const totalMinutes = useMemo(() => {
     const exercises = getGeneratedRoutine({routines, chains});
@@ -148,21 +149,14 @@ const RoutineInformation: React.FC = () => {
   }, [groupedExercises]);
 
   const handleStart = useCallback(() => {
-    Alert.alert(
-      'Recordatorio Importante',
-      'Durante la elongación deberías sentir tensión moderada, NUNCA dolor. Si sentís dolor, reducí la intensidad o consultá a un profesional.',
-      [
-        {
-          text: 'ENTENDIDO',
-          onPress: () => {
-            navigation.navigate('StartRoutine', {
-              groupedExercises,
-              routeParams: route.params,
-            });
-          },
-        },
-      ],
-    );
+    setShowStartReminder(true);
+  }, []);
+
+  const handleConfirmStart = useCallback(() => {
+    navigation.navigate('StartRoutine', {
+      groupedExercises,
+      routeParams: route.params,
+    });
   }, [navigation, groupedExercises, route.params]);
 
   const handleSelectExercise = useCallback((exercise: ExerciseWithAsset) => {
@@ -297,6 +291,14 @@ const RoutineInformation: React.FC = () => {
           INICIAR RUTINA
         </Text>
       </TouchableOpacity>
+
+      <AppModal
+        visible={showStartReminder}
+        title="Recordatorio importante"
+        message="Durante la elongación deberías sentir tensión moderada, NUNCA dolor. Si sentís dolor, reducí la intensidad o consultá a un profesional."
+        buttons={[{text: 'ENTENDIDO', onPress: handleConfirmStart}]}
+        onClose={() => setShowStartReminder(false)}
+      />
 
       <Modal
         visible={selectedExercise !== null}

@@ -1,11 +1,10 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,6 +14,7 @@ import Sound from 'react-native-sound';
 import {useTheme} from '../../../theme';
 import {useExerciseTimer, useScreenInsets} from '../../../hooks';
 import {ExerciseWithAsset} from '../../../data/types';
+import AppModal from '../../../components/AppModal';
 
 const EXERCISE_DURATION = 20;
 const REST_DURATION = 10;
@@ -68,11 +68,10 @@ const StartRoutine: React.FC = () => {
     return groupedExercises.flatMap((group: any) => group.exercises || []);
   }, [groupedExercises]);
 
-  const {state, toggleActive, pause, start} = useExerciseTimer(
-    allExercises.length,
-    EXERCISE_DURATION,
-    REST_DURATION,
-  );
+  const {state, toggleActive, pause, start, goNext, goPrevious} =
+    useExerciseTimer(allExercises.length, EXERCISE_DURATION, REST_DURATION);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const wasActiveBeforeExitRef = useRef(false);
 
   const {
     totalSeconds,
@@ -157,36 +156,24 @@ const StartRoutine: React.FC = () => {
   }, [finished]);
 
   const handleExit = () => {
-    const wasActive = isActive;
-    if (wasActive) {
+    wasActiveBeforeExitRef.current = isActive;
+    if (isActive) {
       pause();
     }
-    Alert.alert(
-      '¿Salir de la rutina?',
-      'Si salís ahora se perderá el progreso de esta sesión. ¿Estás seguro?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-          onPress: () => {
-            if (wasActive) {
-              start();
-            }
-          },
-        },
-        {
-          text: 'Salir',
-          style: 'destructive',
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'Home'}],
-            });
-          },
-        },
-      ],
-      {cancelable: false},
-    );
+    setShowExitModal(true);
+  };
+
+  const handleCancelExit = () => {
+    if (wasActiveBeforeExitRef.current) {
+      start();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Home'}],
+    });
   };
 
   if (allExercises.length === 0) {
@@ -280,19 +267,58 @@ const StartRoutine: React.FC = () => {
 
         <ProgressBar progress={progress} color={phaseColor} />
 
-        <TouchableOpacity
-          style={[
-            styles.pauseButton,
-            {backgroundColor: theme.colors.accent},
-          ]}
-          onPress={toggleActive}
-          activeOpacity={0.7}>
-          <Icon
-            name={isActive ? 'pause' : 'play'}
-            size={32}
-            color={theme.colors.textOnButton}
-          />
-        </TouchableOpacity>
+        <View style={styles.controlsRow}>
+          <TouchableOpacity
+            style={[
+              styles.sideButton,
+              {
+                backgroundColor: 'rgba(65,189,252,0.25)',
+                opacity: safeIndex === 0 ? 0.4 : 1,
+              },
+            ]}
+            onPress={goPrevious}
+            disabled={safeIndex === 0}
+            activeOpacity={0.7}>
+            <Icon
+              name="skip-previous"
+              size={28}
+              color={theme.colors.textPrimary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.pauseButton,
+              {backgroundColor: theme.colors.accent},
+            ]}
+            onPress={toggleActive}
+            activeOpacity={0.7}>
+            <Icon
+              name={isActive ? 'pause' : 'play'}
+              size={32}
+              color={theme.colors.textOnButton}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.sideButton,
+              {
+                backgroundColor: 'rgba(65,189,252,0.25)',
+                opacity:
+                  safeIndex + 1 >= allExercises.length ? 0.4 : 1,
+              },
+            ]}
+            onPress={goNext}
+            disabled={safeIndex + 1 >= allExercises.length}
+            activeOpacity={0.7}>
+            <Icon
+              name="skip-next"
+              size={28}
+              color={theme.colors.textPrimary}
+            />
+          </TouchableOpacity>
+        </View>
 
         {safeIndex + 1 < allExercises.length && (
           <View style={styles.nextExerciseContainer}>
@@ -319,6 +345,18 @@ const StartRoutine: React.FC = () => {
           </View>
         )}
       </LinearGradient>
+
+      <AppModal
+        visible={showExitModal}
+        title="¿Salir de la rutina?"
+        message="Si salís ahora se perderá el progreso de esta sesión. ¿Estás seguro?"
+        cancelable={false}
+        buttons={[
+          {text: 'Cancelar', style: 'cancel', onPress: handleCancelExit},
+          {text: 'Salir', style: 'destructive', onPress: handleConfirmExit},
+        ]}
+        onClose={() => setShowExitModal(false)}
+      />
     </>
   );
 };
@@ -386,14 +424,26 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 18,
+    marginBottom: 10,
+  },
+  sideButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   pauseButton: {
-    alignSelf: 'center',
     width: 64,
     height: 64,
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},

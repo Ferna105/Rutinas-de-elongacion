@@ -15,7 +15,13 @@ import {
   GeneratedExercise,
   GroupedRoutine,
   RoutineSelection,
+  ChainSelection,
 } from './types';
+
+// Duración (segundos) de cada ejercicio + descanso
+export const EXERCISE_SECONDS = 20;
+export const REST_SECONDS = 10;
+export const EXERCISE_BLOCK_SECONDS = EXERCISE_SECONDS + REST_SECONDS;
 
 // ========== QUERIES BÁSICAS ==========
 
@@ -107,6 +113,28 @@ export const getRoutineByRid = (rid: string): RoutineWithExercises | null => {
 
 export const getRoutineLength = (rid: string): number => {
   return database.exercises_routines.filter(er => er.rid === rid).length;
+};
+
+// ========== HELPERS DE DURACIÓN EN MINUTOS ==========
+
+// Minutos para una rutina/cadena de N ejercicios repetida `level` veces.
+export const minutesForLevel = (
+  exercisesLength: number,
+  level: 1 | 2 | 3,
+): number => {
+  return Math.ceil(
+    (level * exercisesLength * EXERCISE_BLOCK_SECONDS) / 60,
+  );
+};
+
+// Calcula minutos totales para una selección parcial (rutinas y/o cadenas).
+export const calculateTotalMinutes = (
+  routines: RoutineSelection[] = [],
+  chains: ChainSelection[] = [],
+): number => {
+  const exercises = getGeneratedRoutine({routines, chains});
+  const totalSeconds = exercises.length * EXERCISE_BLOCK_SECONDS;
+  return Math.ceil(totalSeconds / 60);
 };
 
 // ========== QUERIES PARA UI DE USUARIO ==========

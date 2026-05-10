@@ -78,6 +78,35 @@ export const useExerciseTimer = (
     setShouldPlayBeep(false);
   }, [restDuration]);
 
+  // Saltar al siguiente ejercicio (en fase de descanso para preparar al usuario).
+  const goNext = useCallback(() => {
+    if (currentIndexRef.current + 1 >= exerciseCount) {
+      return;
+    }
+    setCurrentIndex(prev => prev + 1);
+    setIsRest(true);
+    setExerciseSeconds(0);
+    setRestSeconds(restDuration);
+    setShouldPlayBeep(false);
+  }, [exerciseCount, restDuration]);
+
+  // Volver al ejercicio anterior (en fase de descanso para repasar).
+  const goPrevious = useCallback(() => {
+    if (currentIndexRef.current <= 0) {
+      // Reinicia el ejercicio actual si ya estamos en el primero.
+      setIsRest(true);
+      setExerciseSeconds(0);
+      setRestSeconds(restDuration);
+      setShouldPlayBeep(false);
+      return;
+    }
+    setCurrentIndex(prev => prev - 1);
+    setIsRest(true);
+    setExerciseSeconds(0);
+    setRestSeconds(restDuration);
+    setShouldPlayBeep(false);
+  }, [restDuration]);
+
   // Loop principal: un único setInterval que vive mientras el componente exista,
   // controlado por refs (evita recrear el interval ante cada cambio de estado).
   useEffect(() => {
@@ -144,6 +173,8 @@ export const useExerciseTimer = (
     start,
     pause,
     reset,
+    goNext,
+    goPrevious,
     shouldPlayBeep,
   };
 };

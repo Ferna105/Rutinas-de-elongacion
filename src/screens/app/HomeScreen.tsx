@@ -294,14 +294,14 @@ const HomeScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Botones principales */}
+        {/* Botón principal */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             style={[
               styles.mainButton,
               { backgroundColor: theme.colors.accent },
             ]}
-            onPress={() => navigateTo('SelectRoutines')}
+            onPress={() => navigateTo('SelectGeneralRoutine')}
             activeOpacity={0.7}>
             <Text
               style={[
@@ -314,46 +314,6 @@ const HomeScreen: React.FC = () => {
               COMENZAR RUTINA
             </Text>
           </TouchableOpacity>
-
-          <View style={styles.secondaryButtons}>
-            <TouchableOpacity
-              style={[
-                styles.secondaryButton,
-                { backgroundColor: 'rgba(65,189,252,0.3)' },
-              ]}
-              onPress={() => navigateTo('Explore')}
-              activeOpacity={0.7}>
-              <Text
-                style={[
-                  styles.secondaryButtonText,
-                  {
-                    fontFamily: theme.typography.fontFamily.bold,
-                    color: theme.colors.textPrimary,
-                  },
-                ]}>
-                EXPLORAR
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.secondaryButton,
-                { backgroundColor: 'rgba(65,189,252,0.3)' },
-              ]}
-              onPress={() => navigateTo('Configuration')}
-              activeOpacity={0.7}>
-              <Text
-                style={[
-                  styles.secondaryButtonText,
-                  {
-                    fontFamily: theme.typography.fontFamily.bold,
-                    color: theme.colors.textPrimary,
-                  },
-                ]}>
-                CONFIGURACIÓN
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </LinearGradient>
