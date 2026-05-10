@@ -73,6 +73,7 @@ const SportsSelection: React.FC = () => {
                     : 'rgba(255,255,255,0.1)',
                   borderColor: theme.colors.accent,
                 },
+                !sport.checked && styles.sportCardUnchecked,
               ]}
               onPress={() => toggleSport(sport.sid)}
               activeOpacity={0.7}>
@@ -111,6 +112,7 @@ const SportsSelection: React.FC = () => {
               ? theme.colors.accent
               : 'rgba(255,255,255,0.2)',
           },
+          !hasSelection && styles.continueButtonDisabled,
         ]}
         onPress={handleContinue}
         disabled={!hasSelection}
@@ -163,6 +165,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
+  sportCardUnchecked: {
+    elevation: 0,
+    shadowOpacity: 0,
+  },
   sportName: {
     fontSize: 15,
     marginLeft: 10,
@@ -178,6 +184,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  continueButtonDisabled: {
+    elevation: 0,
+    shadowOpacity: 0,
   },
   continueText: {
     fontSize: 18,

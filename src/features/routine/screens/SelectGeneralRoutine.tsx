@@ -14,6 +14,7 @@ import {useAuth} from '../../../components/AuthContext';
 import {useScreenInsets} from '../../../hooks';
 import {
   getRoutinesByType,
+  getRoutineBySid,
   minutesForLevel,
   calculateTotalMinutes,
 } from '../../../data/queries';
@@ -26,17 +27,78 @@ const SelectGeneralRoutine: React.FC = () => {
   const {profile} = useAuth();
   const insets = useScreenInsets();
 
-  const generalRoutine = useMemo(() => getRoutinesByType('general'), []);
-  const [level, setLevel] = useState<1 | 2 | 3>(1);
+  const initialRoutines = useMemo<RoutineSelection[]>(() => {
+    const list: RoutineSelection[] = [];
+
+    const general = getRoutinesByType('general');
+    if (general) {
+      list.push({
+        rid: general.rid,
+        name: general.name,
+        type: general.type,
+        sid: general.sid,
+        selected: true,
+        level: 1,
+        exercisesLength: general.exercisesLength,
+      });
+    }
+
+    if (profile?.status && profile.sports) {
+      profile.sports.forEach(sport => {
+        const r = getRoutineBySid(sport.sid);
+        if (!r) return;
+        list.push({
+          rid: r.rid,
+          name: r.name,
+          type: r.type,
+          sid: r.sid,
+          selected: false,
+          level: 1,
+          exercisesLength: r.exercisesLength,
+        });
+      });
+    }
+
+    return list;
+  }, [profile]);
+
+  const [selections, setSelections] =
+    useState<RoutineSelection[]>(initialRoutines);
 
   useEffect(() => {
-    if (!generalRoutine) {
-      // Si no hay rutina general configurada en la base, no podemos avanzar.
-      return;
-    }
-  }, [generalRoutine]);
+    setSelections(initialRoutines);
+  }, [initialRoutines]);
 
-  if (!generalRoutine) {
+  const toggleSelected = (rid: string) => {
+    setSelections(prev =>
+      prev.map(r => (r.rid === rid ? {...r, selected: !r.selected} : r)),
+    );
+  };
+
+  const setLevel = (rid: string, level: 1 | 2 | 3) => {
+    setSelections(prev =>
+      prev.map(r => (r.rid === rid ? {...r, level, selected: true} : r)),
+    );
+  };
+
+  const selectedRoutines = useMemo(
+    () => selections.filter(s => s.selected),
+    [selections],
+  );
+
+  const totalMinutes = useMemo(
+    () => calculateTotalMinutes(selectedRoutines),
+    [selectedRoutines],
+  );
+
+  const canContinue = selectedRoutines.length > 0;
+
+  const handleNext = () => {
+    if (!canContinue) return;
+    navigation.navigate('AddAccessory', {routines: selectedRoutines});
+  };
+
+  if (selections.length === 0) {
     return (
       <LinearGradient
         colors={[
@@ -54,49 +116,12 @@ const SelectGeneralRoutine: React.FC = () => {
                 color: theme.colors.textPrimary,
               },
             ]}>
-            No hay una rutina general disponible.
+            No hay rutinas disponibles.
           </Text>
         </View>
       </LinearGradient>
     );
   }
-
-  const exercisesLength = generalRoutine.exercisesLength || 0;
-  const options: Array<{level: 1 | 2 | 3; minutes: number}> = useMemo(
-    () => [
-      {level: 1, minutes: minutesForLevel(exercisesLength, 1)},
-      {level: 2, minutes: minutesForLevel(exercisesLength, 2)},
-      {level: 3, minutes: minutesForLevel(exercisesLength, 3)},
-    ],
-    [exercisesLength],
-  );
-
-  const selectedRoutine: RoutineSelection = {
-    rid: generalRoutine.rid,
-    name: generalRoutine.name,
-    type: generalRoutine.type,
-    sid: generalRoutine.sid,
-    selected: true,
-    level,
-    exercisesLength,
-  };
-
-  const totalMinutes = calculateTotalMinutes([selectedRoutine]);
-
-  const hasSports = !!(
-    profile?.status &&
-    profile.sports &&
-    profile.sports.length > 0
-  );
-
-  const handleNext = () => {
-    const routines: RoutineSelection[] = [selectedRoutine];
-    if (hasSports) {
-      navigation.navigate('SelectSportRoutines', {routines});
-    } else {
-      navigation.navigate('AddAccessory', {routines});
-    }
-  };
 
   return (
     <LinearGradient
@@ -119,7 +144,7 @@ const SelectGeneralRoutine: React.FC = () => {
               color: theme.colors.textPrimary,
             },
           ]}>
-          Rutina general
+          Elegí tus rutinas
         </Text>
 
         <Text
@@ -130,110 +155,127 @@ const SelectGeneralRoutine: React.FC = () => {
               color: theme.colors.textSecondary,
             },
           ]}>
-          Elegí cuántos minutos de trabajo querés hacer.
+          Seleccioná la rutina general y/o las rutinas por deporte y elegí
+          los minutos.
         </Text>
 
         <RoutineProgress totalMinutes={totalMinutes} />
 
-        <View
-          style={[
-            styles.materialsCard,
-            {backgroundColor: 'rgba(65,189,252,0.1)'},
-          ]}>
-          <Icon
-            name="information"
-            size={22}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.materialsText,
-              {
-                fontFamily: theme.typography.fontFamily.regular,
-                color: theme.colors.textSecondary,
-              },
-            ]}>
-            Materiales: silla, soga, bastón, libro grueso
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.routineCard,
-            {
-              backgroundColor: 'rgba(65,189,252,0.15)',
-              borderColor: theme.colors.accent,
-            },
-          ]}>
-          <Text
-            style={[
-              styles.routineName,
-              {
-                fontFamily: theme.typography.fontFamily.bold,
-                color: theme.colors.textPrimary,
-              },
-            ]}>
-            {generalRoutine.name}
-          </Text>
-          <Text
-            style={[
-              styles.exerciseHint,
-              {
-                fontFamily: theme.typography.fontFamily.regular,
-                color: theme.colors.textSecondary,
-              },
-            ]}>
-            {exercisesLength} ejercicios disponibles
-          </Text>
-
-          <View style={styles.optionsRow}>
-            {options.map(opt => {
-              const isSelected = level === opt.level;
-              return (
-                <TouchableOpacity
-                  key={opt.level}
+        {selections.map(routine => {
+          const length = routine.exercisesLength || 0;
+          const options: Array<{level: 1 | 2 | 3; minutes: number}> = [
+            {level: 1, minutes: minutesForLevel(length, 1)},
+            {level: 2, minutes: minutesForLevel(length, 2)},
+            {level: 3, minutes: minutesForLevel(length, 3)},
+          ];
+          return (
+            <View
+              key={routine.rid}
+              style={[
+                styles.routineCard,
+                {
+                  backgroundColor: routine.selected
+                    ? 'rgba(65,189,252,0.15)'
+                    : 'rgba(255,255,255,0.06)',
+                  borderColor: routine.selected
+                    ? theme.colors.accent
+                    : 'rgba(255,255,255,0.12)',
+                },
+              ]}>
+              <TouchableOpacity
+                style={styles.routineHeader}
+                onPress={() => toggleSelected(routine.rid)}
+                activeOpacity={0.7}>
+                <Icon
+                  name={
+                    routine.selected
+                      ? 'checkbox-marked'
+                      : 'checkbox-blank-outline'
+                  }
+                  size={26}
+                  color={
+                    routine.selected
+                      ? theme.colors.accent
+                      : theme.colors.textPrimary
+                  }
+                />
+                <Text
                   style={[
-                    styles.optionButton,
+                    styles.routineName,
                     {
-                      backgroundColor: isSelected
-                        ? theme.colors.accent
-                        : 'rgba(255,255,255,0.08)',
-                      borderColor: isSelected
-                        ? theme.colors.accent
-                        : 'rgba(255,255,255,0.15)',
+                      fontFamily: theme.typography.fontFamily.bold,
+                      color: theme.colors.textPrimary,
                     },
-                  ]}
-                  onPress={() => setLevel(opt.level)}
-                  activeOpacity={0.7}>
+                  ]}>
+                  {routine.name}
+                </Text>
+              </TouchableOpacity>
+
+              {routine.selected && (
+                <>
                   <Text
                     style={[
-                      styles.optionMinutes,
-                      {
-                        fontFamily: theme.typography.fontFamily.bold,
-                        color: isSelected
-                          ? theme.colors.textOnButton
-                          : theme.colors.textPrimary,
-                      },
-                    ]}>
-                    {opt.minutes}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.optionLabel,
+                      styles.exerciseHint,
                       {
                         fontFamily: theme.typography.fontFamily.regular,
-                        color: isSelected
-                          ? theme.colors.textOnButton
-                          : theme.colors.textSecondary,
+                        color: theme.colors.textSecondary,
                       },
                     ]}>
-                    min
+                    {length} ejercicios disponibles
                   </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+                  <View style={styles.optionsRow}>
+                    {options.map(opt => {
+                      const isSel = routine.level === opt.level;
+                      return (
+                        <TouchableOpacity
+                          key={opt.level}
+                          style={[
+                            styles.optionButton,
+                            {
+                              backgroundColor: isSel
+                                ? theme.colors.accent
+                                : 'rgba(255,255,255,0.08)',
+                              borderColor: isSel
+                                ? theme.colors.accent
+                                : 'rgba(255,255,255,0.15)',
+                            },
+                          ]}
+                          onPress={() => setLevel(routine.rid, opt.level)}
+                          activeOpacity={0.7}>
+                          <Text
+                            style={[
+                              styles.optionMinutes,
+                              {
+                                fontFamily: theme.typography.fontFamily.bold,
+                                color: isSel
+                                  ? theme.colors.textOnButton
+                                  : theme.colors.textPrimary,
+                              },
+                            ]}>
+                            {opt.minutes}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.optionLabel,
+                              {
+                                fontFamily:
+                                  theme.typography.fontFamily.regular,
+                                color: isSel
+                                  ? theme.colors.textOnButton
+                                  : theme.colors.textSecondary,
+                              },
+                            ]}>
+                            min
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
 
       <TouchableOpacity
@@ -241,17 +283,23 @@ const SelectGeneralRoutine: React.FC = () => {
           styles.nextButton,
           {
             bottom: 20 + insets.bottom,
-            backgroundColor: theme.colors.accent,
+            backgroundColor: canContinue
+              ? theme.colors.accent
+              : 'rgba(255,255,255,0.15)',
           },
+          !canContinue && styles.nextButtonDisabled,
         ]}
         onPress={handleNext}
+        disabled={!canContinue}
         activeOpacity={0.7}>
         <Text
           style={[
             styles.nextButtonText,
             {
               fontFamily: theme.typography.fontFamily.bold,
-              color: theme.colors.textOnButton,
+              color: canContinue
+                ? theme.colors.textOnButton
+                : theme.colors.textSecondary,
             },
           ]}>
           SIGUIENTE
@@ -282,30 +330,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginBottom: 20,
   },
-  materialsCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 20,
-    gap: 10,
-  },
-  materialsText: {
-    fontSize: 13,
-    flex: 1,
-  },
   routineCard: {
-    padding: 18,
+    padding: 16,
     borderRadius: 12,
     borderWidth: 1.5,
+    marginBottom: 14,
+  },
+  routineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   routineName: {
-    fontSize: 18,
-    marginBottom: 4,
+    fontSize: 17,
+    flex: 1,
   },
   exerciseHint: {
-    fontSize: 13,
-    marginBottom: 16,
+    fontSize: 12,
+    marginTop: 8,
+    marginBottom: 10,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -313,16 +356,16 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
   },
   optionMinutes: {
-    fontSize: 26,
+    fontSize: 22,
   },
   optionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 2,
   },
   nextButton: {
@@ -337,6 +380,10 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  nextButtonDisabled: {
+    elevation: 0,
+    shadowOpacity: 0,
   },
   nextButtonText: {
     fontSize: 17,

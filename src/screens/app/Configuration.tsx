@@ -7,6 +7,7 @@ import {
   Switch,
   StyleSheet,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../theme';
@@ -16,6 +17,7 @@ import {SportSelection} from '../../data/types';
 import AppModal from '../../components/AppModal';
 
 const Configuration: React.FC = () => {
+  const navigation = useNavigation<any>();
   const {theme, themeMode, setThemeMode} = useTheme();
   const {profile, updateProfile} = useAuth();
   
@@ -51,10 +53,7 @@ const Configuration: React.FC = () => {
         status: practicesSport,
         sports: practicesSport ? selected : [],
       });
-      setResultModal({
-        title: 'Éxito',
-        message: 'Perfil actualizado correctamente',
-      });
+      navigation.goBack();
     } catch (error) {
       setResultModal({
         title: 'Error',

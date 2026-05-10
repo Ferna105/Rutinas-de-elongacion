@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {HomeScreen, Configuration} from '../screens/app';
 import {
   SelectGeneralRoutine,
-  SelectSportRoutines,
   AddAccessory,
   AccessoryExercises,
   RoutineInformation,
@@ -50,12 +49,7 @@ const AppNavigator: React.FC = () => {
       <Stack.Screen
         name="SelectGeneralRoutine"
         component={SelectGeneralRoutine}
-        options={{title: 'Rutina general'}}
-      />
-      <Stack.Screen
-        name="SelectSportRoutines"
-        component={SelectSportRoutines}
-        options={{title: 'Rutinas por deporte'}}
+        options={{title: 'Elegí tus rutinas'}}
       />
       <Stack.Screen
         name="AddAccessory"

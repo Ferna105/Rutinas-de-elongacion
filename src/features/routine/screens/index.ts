@@ -1,5 +1,4 @@
 export {default as SelectGeneralRoutine} from './SelectGeneralRoutine';
-export {default as SelectSportRoutines} from './SelectSportRoutines';
 export {default as AddAccessory} from './AddAccessory';
 export {default as AccessoryExercises} from './AccessoryExercises';
 export {default as RoutineInformation} from './RoutineInformation';
