@@ -1,4 +1,4 @@
-package com.rutinasdeelongacion
+package com.rutinasdeelongacion.ok
 
 import android.app.Application
 import com.facebook.react.PackageList
