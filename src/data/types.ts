@@ -12,7 +12,7 @@ export interface Exercise {
   showableName: string;
   name: string;
   description: string;
-  gifKey: string; // Referencia al asset, no el módulo directamente
+  videoKey: string; // Referencia al asset, no el módulo directamente
   cid: string; // FK a Chain
 }
 
@@ -49,9 +49,9 @@ export interface ChainWithAsset extends Omit<Chain, 'imageKey'> {
   image: any; // ImageSourcePropType de React Native
 }
 
-export interface ExerciseWithAsset extends Omit<Exercise, 'gifKey'> {
-  gif: any; // ImageSourcePropType de React Native
-  poster?: any; // ImageSourcePropType de React Native (poster estático PNG)
+export interface ExerciseWithAsset extends Omit<Exercise, 'videoKey'> {
+  video: any; // Módulo require() del .mp4 (se reproduce con react-native-video)
+  poster?: any; // ImageSourcePropType de React Native (poster estático JPG)
 }
 
 // Tipos para perfil de usuario

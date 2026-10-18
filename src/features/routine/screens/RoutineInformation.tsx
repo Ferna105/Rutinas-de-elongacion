@@ -24,6 +24,7 @@ import {
   ChainSelection,
 } from '../../../data/types';
 import AppModal from '../../../components/AppModal';
+import ExerciseVideo from '../../../components/ExerciseVideo';
 
 type ListItem =
   | {type: 'header'; title: string; groupIndex: number}
@@ -320,20 +321,10 @@ const RoutineInformation: React.FC = () => {
 
               {selectedExercise && (
                 <>
-                  {selectedExercise.gif ? (
-                    <Image
-                      source={selectedExercise.gif}
-                      style={styles.modalGif}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.modalGif,
-                        {backgroundColor: 'rgba(255,255,255,0.1)'},
-                      ]}
-                    />
-                  )}
+                  <ExerciseVideo
+                    source={selectedExercise.video}
+                    style={styles.modalVideo}
+                  />
                   <Text
                     style={[
                       styles.modalTitle,
@@ -464,7 +455,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginBottom: 10,
   },
-  modalGif: {
+  modalVideo: {
     width: '100%',
     height: 250,
     borderRadius: 10,

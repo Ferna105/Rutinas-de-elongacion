@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTheme} from '../../theme';
 import {getShowableExercises} from '../../data/queries';
 import {ExerciseWithAsset} from '../../data/types';
+import ExerciseVideo from '../../components/ExerciseVideo';
 
 interface ExerciseRowProps {
   item: ExerciseWithAsset;
@@ -110,7 +111,7 @@ const Explore: React.FC = () => {
 
               {selectedExercise && (
                 <>
-                  <Image source={selectedExercise.gif} style={styles.modalGif} resizeMode="contain" />
+                  <ExerciseVideo source={selectedExercise.video} style={styles.modalVideo} />
                   <Text
                     style={[
                       styles.modalTitle,
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginBottom: 10,
   },
-  modalGif: {
+  modalVideo: {
     width: '100%',
     height: 250,
     borderRadius: 10,

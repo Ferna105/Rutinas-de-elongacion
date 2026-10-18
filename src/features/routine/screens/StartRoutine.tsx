@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,6 +14,7 @@ import {useTheme} from '../../../theme';
 import {useExerciseTimer, useScreenInsets} from '../../../hooks';
 import {ExerciseWithAsset} from '../../../data/types';
 import AppModal from '../../../components/AppModal';
+import ExerciseVideo from '../../../components/ExerciseVideo';
 
 const EXERCISE_DURATION = 20;
 const REST_DURATION = 10;
@@ -36,21 +36,6 @@ const ProgressBar = ({
       ]}
     />
   </View>
-);
-
-interface ExerciseGifProps {
-  source: any;
-  style: any;
-}
-
-const ExerciseGif = React.memo<ExerciseGifProps>(
-  ({source, style}) => {
-    if (!source) {
-      return <View style={[style, {backgroundColor: 'rgba(255,255,255,0.1)'}]} />;
-    }
-    return <Image source={source} style={style} resizeMode="contain" />;
-  },
-  (prev, next) => prev.source === next.source,
 );
 
 const StartRoutine: React.FC = () => {
@@ -226,7 +211,7 @@ const StartRoutine: React.FC = () => {
         </View>
 
         <View style={styles.exerciseContainer}>
-          <ExerciseGif source={exercise.gif} style={styles.exerciseGif} />
+          <ExerciseVideo source={exercise.video} style={styles.exerciseVideo} />
           <Text
             style={[
               styles.exerciseName,
@@ -382,7 +367,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 8,
   },
-  exerciseGif: {
+  exerciseVideo: {
     flex: 1,
     aspectRatio: 1,
     maxWidth: '90%',
